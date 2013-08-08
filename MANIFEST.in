@@ -1,0 +1,6 @@
+recursive-include doc *
+recursive-include scripts *
+include AUTHORS
+include LICENSE
+include README.rst
+include requirements.txt
