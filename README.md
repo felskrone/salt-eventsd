@@ -1,9 +1,12 @@
 # salt-eventsd
 
+THIS IS STILL IN DEVELOPMENT AND IN ITS EARLY STAGES. NOT READY FOR PRODUCTION YET!
+
 A event-listener daemon for saltstack that writes data into a database
 
 It connects to the salt-masters event-bus and listens for all events. Depending on the configuration,
 certain events can be collected into an event-queue and written into a database. 
+
 
 ### Usage Examples
 - collect all events with tag 'new_job' to have a job-history that lasts longer than saltstacks job-cache
