@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+# Automatically added by dh_installinit
+if [ -x "/etc/init.d/salt-eventsd" ]; then
+	update-rc.d salt-eventsd defaults >/dev/null
+	if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+		invoke-rc.d salt-eventsd start || exit $?
+	else
+		/etc/init.d/salt-eventsd start || exit $?
+	fi
+fi
+# End automatically added section

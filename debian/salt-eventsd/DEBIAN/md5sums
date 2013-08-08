@@ -1,0 +1,7 @@
+9a70412a443980ca9d6fbc0383945a79  usr/bin/salt-eventsd
+f3431b9f57df14ecd10bab6ce41f3f55  usr/share/doc/salt-eventsd/changelog.gz
+d7aabb178afb58bde9a831e77464cefe  usr/share/doc/salt-eventsd/copyright
+4ec3d025d28da7416fcef07cd8d283e2  usr/share/doc/salt-eventsd/eventsd.conf.example
+9cec11ae564753055a790de0a3560843  usr/share/doc/salt-eventsd/mysql-example.sql
+2a0b3f87b047d9f3c713e01e7937dbe2  usr/share/man/man1/salt-eventsd.1.gz
+938ae313b3517dd9dbafe3a56621dac0  usr/share/man/man5/salt-eventsd.5.gz

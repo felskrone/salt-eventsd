@@ -1,0 +1,11 @@
+salt-eventsd (0.2) stable; urgency=low
+
+  * added signal handler instead of external commands
+
+ -- Volker Schwicking <vs@hosteurope.de>  Wed, 07 Aug 2013 18:20:52 +0000
+
+salt-eventsd (0.1) stable; urgency=low
+
+  * initial package for salt-eventsd
+
+ -- Volker Schwicking <vs@hosteurope.de>  Wed, 07 Aug 2013 20:20:52 +0000

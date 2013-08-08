@@ -1,0 +1,41 @@
+{
+    "general": {
+        "sock_dir": "/var/run/salt/master",
+        "node" : "master",
+        "max_workers" : 100,
+        "id" : "master",
+        "event_limit": 2,
+        "pidfile" : "/var/run/salt-eventsd.pid",
+        "state_file" : "/var/run/salt-eventsd.status",
+        "state_upd" : 25,
+        "loglevel" : "debug",
+        "logfile" : "/var/log/salt/eventsd.log",
+        "dump_timer" : 60
+    },
+
+    "mysql": {
+        "username" : "collector",
+        "password" : "Ahpoohah3shupaiz1ooj",
+        "db"   : "saltresults",
+        "host" : "localhost"
+    },
+
+    "events": {
+        "new_job": {
+            "tag" : "new_job",
+            "mysql_tab" : "command",
+            "template" : "insert into {0} (jid, user, fun, arg, tgt, tgt_type) values ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}');",
+            "dict_name" : "data",
+            "fields" : ["jid", "user", "fun", "arg", "tgt", "tgt_type"],
+            "debug"      : false
+        },
+        "return": {
+            "tag" : "\\d{20}",
+            "mysql_tab" : "results",
+            "template" : "insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');",
+            "dict_name" : "data",
+            "fields" : ["jid", "id", "retcode", "return", "success"],
+            "debug"      : false
+        }
+    }
+}

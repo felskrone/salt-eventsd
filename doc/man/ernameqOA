@@ -1,0 +1,144 @@
+eventsd.conf(5)                                                                          File Formats and Conversions                                                                         eventsd.conf(5)
+
+
+
+NNAAMMEE
+       eventsd.conf - configuration file for the salt-eventsd
+
+OOVVEERRVVIIEEWW
+       The main configuration-file for the salt-events usually located in /etc/salt/eventsd.conf. It contains all the settings required to run the salt-eventsd.
+
+
+CCOONNFFIIGG--SSEECCTTIIOONNSS
+   GGEENNEERRAALL
+       Contains the general settings.
+
+       ssoocckk__ddiirr
+              the path where the salt-masters events socket is located (default: /var/run/salt/master)
+
+
+       nnooddee   can be either master or minion, depending on where the salt-eventsd is run. Currently supports only 'master'
+
+
+       mmaaxx__wwoorrkkeerrss
+              how many threads to start max that insert data into the databse. This largely depends on your hardware.
+
+
+       iidd     defaults to 'master', currently nothing else supported
+
+
+       eevveenntt__lliimmiitt
+              how many events to collect before writing them into the database. Think of this as a queue that collects until its full and then writes its data to disk,
+
+
+       ppiiddffiillee
+              where the daemon should write its pidfie
+
+
+       ssttaattee__ffiillee
+              the salt-eventsd keep counters of collected events, threads created, threads joined, etc. This data is written into a file on a regular bases. See state_upd below.
+
+
+       ssttaattee__uuppdd
+              how many events to collect before updating the state_file. Dont set this too low, there can be quite a lot of events on the master depending on your minion swarm.
+
+
+       lloogglleevveell
+              can currently not be changed and defaults to 'info'. This is work to be done.
+
+
+       llooggffiillee
+              where to write the logfile. Currently defaults to '/var/log/salt/eventsd.log' and can not be changed. This is work to be done.
+
+
+       dduummpp__ttiimmeerr
+              If there are only a few events on the master to collect, it might take quite a while before the already collected events are written to the database. To keep this time short, there is a timer
+              that triggers this every 'dump_timer' seconds. Whenever the events are written to the database due to the event_limit being reached, the timer is reset.
+
+
+
+   HHOOSSTTPPAATTTTEERRNNSS
+       Pattern-pairs that are used for adressing in salt with their matching dsh-group file to verify the returns.
+
+
+       If you use the '-g' switch in the mqshell and use the dsh-group wp2005 to run a command on, salt will internally use the pattern defined here to address hosts. Example:
+
+       wp2005=wp*
+
+       this will tell the mqshell to use the pattern 'wp*' for addressing hosts if the dsh-group wp2005 is being used. The key always has to be a valid dsh-group-file while the value/pattern is  only  lim‐
+       ited  by  regex-rules  and  valid  characters  for  hostnames. You can define ranges, wildcards etc. The asterisk at the and is VERY IMPORTANT. Remember that the saltstack-framework uses globbing by
+       default to match on minion-ids/hostnames.
+
+       wp2005=wp0[0-4]* - address all hosts that are named wp00*, wp01*, wp03*, wp04*
+
+       Lists of hostnames are NOT ALLOWED here. See the '-l' switch in the mqshell to use a predefined list of hosts.
+
+
+   GGRRAAIINNSSPPAATTTTEERRNNSS
+       Pattern-pairs that are used for adressing in salt with their matching dsh-group file to verify the returns. The difference between HOSTPATTERNS and GRAINSPATTERNS is the addressing. While the  HOST‐
+       PATTERNS  match  on  the server-id (aka fqdn), GRAINS match on host properties like CPU-Type, RAM-size, etc. If you address hosts by 'location:cgn' (with the -G switch in mqshell), salt will address
+       all hosts that match this grain. The returns will be verified against the dsh-groups defined here. Example:
+
+       wpfal=location:cgn,wp2005-fal,w2012-fal
+
+       If you use the grain 'location:cgn' for addressing, the results will be verified against the dsh-groups wp2005-fal and wp2012-fal.
+
+
+
+   HHOOSSTTPPAATTTTEERRNN__GGRROOUUPPSS
+       The dsh-groups to concatenate to a list of _all_ servers we have to match a pattern against. This is used for example if '-p' in mqshell is used to verify that all hosts that  should  have  actually
+       responded. Just add another group if necessary. Duplicate hostnames are filtered upon reading the lists.
+
+       hostpattern_groups=shared.rev2,xh-fal,xhd,vwp
+
+
+
+   HHTTTTPP__AAPPII
+       the  mqshell also has a http-api which receives jobs using https and base64'ed json-objects. The settings in this sections apply to the http-api only. The dont interfere with the command-line client
+       in any way.
+
+
+       ssdd__mmoodduulleess
+              the documentation(!) the user 'sd' has access to
+
+
+       ssaawwhh__mmoodduulleess
+              the documentation(!) the user 'sawh' has access to
+
+
+       kkiiss__mmoodduulleess
+              the documentation(!) the user 'kis' has access to, should ALWAYS BE NONE
+
+
+       vvaalliidd__bbaattcchheess
+              the http-api supports only a given set of batches to prevent too large numbers. Its a list of ints seperated by a comma
+
+
+       vvaalliidd__mmaattcchheerrss
+              list and glob are valid values here, ask vs for details what this is, too much to write here :-)
+
+
+       vvaalliidd__ttaarrggeettss
+              the targets that can be addressed using the http-api. regex patterns and predefined patterns are not allowed here. Only singlehost, hostlist and grains.
+
+
+
+       vvaalliidd__ttaarrggeettss
+              a list of comma seperated users that are allowed to post jobs to the http-api. The authentication is done using htaccess, not in the api itself.
+
+
+       kkiiss__aappii
+              regex hostname-patterns the kis-user can run commands on.
+
+
+       ssaawwhh__aappii
+              regex hostname-patterns the sawh-user can run commands on
+
+
+       ssdd__aappii regex hostname-patterns the sd-user can run commands on
+
+
+
+
+
+Volker Schwicking                                                                             v0.2 August 8 2013                                                                              eventsd.conf(5)

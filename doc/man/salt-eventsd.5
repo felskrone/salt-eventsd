@@ -1,0 +1,122 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH "eventsd.conf" "5" "v0.2 August 8 2013" "Volker Schwicking" "File Formats and Conversions"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.SH NAME
+eventsd.conf \- configuration file for the salt-eventsd
+.SH OVERVIEW
+.br 
+The main configuration-file in JSON-Format for the salt-events usually located in /etc/salt/eventsd.conf. It contains 
+all the settings required to run the salt-eventsd. DO NOT remove any in mysql or general, the daemon will not start!
+
+.SH
+.BR CONFIG-SECTIONS
+.SS
+.BR GENERAL
+.br 
+Contains the general settings.
+.TP
+.BR sock_dir
+the path where the salt-masters events socket is located (default: /var/run/salt/master)
+
+.TP
+.BR node
+can be either master or minion, depending on where the salt-eventsd is run. Currently supports only 'master'
+
+.TP
+.BR max_workers
+how many threads to start max that insert data into the databse. This largely depends on your hardware. 
+
+.TP
+.BR id
+defaults to 'master', currently nothing else supported
+
+.TP
+.BR event_limit
+how many events to collect before writing them into the database. Think of this as a queue that collects until its full and then writes its data to disk,
+
+.TP
+.BR pidfile
+where the daemon should write its pidfie
+
+.TP
+.BR state_file
+the salt-eventsd keep counters of collected events, threads created, threads joined, etc. This data is written into a file on a regular bases. See state_upd below.
+
+.TP
+.BR state_upd
+how many events to collect before updating the state_file. Dont set this too low, there can be quite a lot of events on the master depending on your minion swarm.
+
+.TP
+.BR loglevel
+can currently not be changed and defaults to 'info'. This is work to be done.
+
+.TP
+.BR logfile
+where to write the logfile. Currently defaults to '/var/log/salt/eventsd.log' and can not be changed. This is work to be done.
+
+.TP
+.BR dump_timer
+If there are only a few events on the master to collect, it might take quite a while before the already collected events are written to the database. To keep this time short, there is a timer that triggers this every 'dump_timer' seconds. Whenever the events are written to the database due to the event_limit being reached, the timer is reset.
+
+.SS
+.BR MYSQL
+.br 
+Contains the mysql settings.
+.TP
+.BR username
+the username for the mysql-server to use
+
+.TP
+.BR password
+the password for the user
+
+.TP
+.BR db
+the database to select on the mysql-server
+
+.TP
+.BR host
+the host on which the database is located (have not tried remote hosts yet)
+
+
+
+.SS
+.BR EVENTS
+Each event to react on, must be configured with all fields required to handle it.
+.TP
+.BR NAME
+Assign a name to the event. This is not used anywhere afterwards, just in the config. The fields "below" the name are the important ones.
+
+.INDENT 5.0
+
+.B \ tag 
+- the tag of the events
+
+.B \ mysql_tab
+- the table in the database this event should be written into
+
+.B \ template
+- a sql_query template to run with the collected events da
+
+.B \ dict_name
+- the structure of an event can vary. Usually the name of the dictionary where the data is located is 'data'. 
+
+.B \ fields
+- not all fields from the events must be used. This configures which fields to extract. NOTE: THE FIELDS IN THE QUERY HAVE TO MATCH THESE FIELDS EXACTLY. ORDER IS IMPORTANT!
+
+.B \ debug
+- debug can be enabled for each event (this is not implemented yet!)
+
+.UNINDENT
+
+.SS
+WHAT HAPPENS WHEN AND WHERE
+THe salt-eventsd listens on the event but of the salt-master. It receives every(!) event that is published. The daemon looks at each events 'tag' and depending on its config decides, if it has to act or not. The matching is done using precompiled regular expressions, so its also valid to have regex-expressions in the 'tag'-fields of an event. This is for example done for the job-returns where the event it matched on a 20-digit tag with '\\d{20}'.  Not matching events are simply ignored. 
+
+Whenever a event matches, it is saved into a event-queue (python list). This happends transparently, the events are not "consumed". When the event-queue reaches its maximum amount of events (event_limit), a thread is started to write this data into the database. Each thread creates its own mysql-connection. For one because the mysql-module does not support threaded connections and secondly because i want the workers to be independent. 
+
+For environments where not so many events occur, the event_timer might be the useful. The timer starts with the configured interval when the daemon starts. It fires an event every 'event_timer' seconds if and only if, the event_limit has not been reached during the last 'event_timer' seconds. Whenever the timer-event occurs, the currently queued events in the event-queue are written to the database. This is to prevent events from sitting too long in the event-queue without being written to the database. If normal database-write occur, the time is reset to zero so to keep it form interfering with the usual database-write-operations form the workers.
