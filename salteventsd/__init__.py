@@ -168,7 +168,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         # start our dump_timer
         self.ev_timer.start()
 
-        # this is for logline chronology to the time-message always comes _before_
+        # this is for logline chronology so the time-message always comes _before_
         # the actual startup-message of the listening loop below :-)
         time.sleep(1)
 
