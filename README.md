@@ -20,3 +20,12 @@ is not always desirable. With this daemon, you can collect all data right where 
 
 More info will follow soon :-)
 
+Features
+========
+- collect events from the salt-event-bus into a database
+- use regular expressions for matching on tags, very flexible and powerful
+- create your own sql-query-templates for inserting data into the database 
+- fully saltstack-job-cache independant database to hold all data you want in it
+- etc.
+
+
