@@ -15,9 +15,9 @@ certain events can be collected into an event-queue and written into a database.
 - create and collect your own custom events with the data you want in an external database
 - etc.
 
-### Why This is useful / Who needs this?
+### Why this is useful / Who needs this?
 Currently saltstack does not have an external job-cache that works without a returner. Using returners and by that losing salt encryption
-is not always desirable. With this daemon, you can collect all data right where its created and returned: on the salt-master.
+is not always desirable or mabye not even an option. With this daemon, you can collect all data right where its created and returned: on the salt-master.
 
 While saltstacks job-cache works well in smaller environments, in larger environments the job-cache can become a burden for the salt-master. Especially
 if the job-cache should be kept for a longer period of time, and im talking weeks and month here. This is where the salt-eventsd jumps in. With the
