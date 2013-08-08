@@ -6,8 +6,8 @@ A event-listener daemon for saltstack that writes data into a database
 It connects to the salt-masters event-bus and listens for all events. Depending on the configuration,
 certain events can be collected into an event-queue and written into a database. 
 
-Examples:
-
+Usage Examples:
+---------------
 - collect all events with tag 'new_job' to have a job-history that lasts longer than saltstacks job-cache
 - collect all job returns by matching on jids returned from minions to have a database with all returns you can index, search, etc.
 - collect historic data like load average etc. by collecting events with tag 'load' which are created by your own load-monitoring module
@@ -21,7 +21,7 @@ is not always desirable. With this daemon, you can collect all data right where 
 More info will follow soon :-)
 
 Features
-========
+--------
 - collect events from the salt-event-bus into a database
 - use regular expressions for matching on tags, very flexible and powerful
 - create your own sql-query-templates for inserting data into the database 
