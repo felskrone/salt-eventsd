@@ -1,11 +1,9 @@
 #!/usr/bin/make -f
 
 COPYRIGHT=LICENSE
-PKGFILES = pkg/*.service 
 MYSQL_DOC = doc/share/doc/*
 
 %:
-	cp $(PKGFILES) debian
 	cp $(COPYRIGHT) debian/copyright
 	mkdir -p debian/salt-eventsd/usr/share/doc/salt-eventsd/
 	cp $(MYSQL_DOC) debian/salt-eventsd/usr/share/doc/salt-eventsd/
