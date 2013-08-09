@@ -17,7 +17,7 @@ class SaltEventsdLoader(object):
 
         self.opts = self.readYAML(config)
 
-        log.info("loaded config from {0}".format(path))
+        log.info("loaded config from {0}".format(config))
 
         if 'general' in self.opts.keys():
             self.gen_opts = self.opts['general']
