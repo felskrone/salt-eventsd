@@ -7,34 +7,36 @@ import sys
 from threading import Thread
 from re import compile
 from base64 import b64encode
-import logging
 import salt.utils.event
-from salteventsd.configreader import Configreader
-from salteventsd.logger import Logger
+import logging
+import salt.log
 from salteventsd.timer import ResetTimer
 from salteventsd.mysql import MysqlConn
+from salteventsd.loader import SaltEventsdLoader
 import salteventsd.daemon
 import signal
 import zmq
+
+log = logging.getLogger(__name__)
 
 class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
     def __init__(self):
 
-        self.opts = Configreader().load('/etc/salt/eventsd.conf')
-
-        self.log = logging.getLogger('salt-eventsd')
+        self.opts = SaltEventsdLoader().getopts()
 
         self.pre_startup(self.opts)
 
         if type(self.opts) is not dict:
-            self.log.info("Received invalid configdata, startup cancelled")
+            log.info("Received invalid configdata, startup cancelled")
             sys.exit(1)
 
         self.config = self.opts['general']
         super(SaltEventsDaemon, self).__init__(self.config['pidfile'])
 
-        self.initMysql(**self.opts['mysql'])
+        # safe the mysql-parameter in there own variable
+        self.mysql_set = self.opts['mysql']
+
         self.initEvents(self.opts['events'])
 
         # the socket to listen on for the events
@@ -43,7 +45,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         # two possible values for 'node': master and minion
         # they do the same thing, just on different sockets
         self.node = self.config['node']
-        # the id
+
+        # the id, usually 'master'
         self.id = self.config['id']
 
         # the statefile where we write the daemon status
@@ -83,23 +86,49 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
 
     def timerEvent(self):
+        '''
+        this is called whenever the timer started in __init__()
+        gets to the end of its counting loop
+        '''
         self.ev_timer_ev = True
-        self.log.debug("event_timer fired")
+        log.debug("event_timer fired")
+
 
     def stop(self,
              signal,
              frame):
+        '''
+        we override stop() to brake our main loop
+        and have a pretty log message
+        '''
+
+        self.shutdown = True
+
+        # wait for the main while-loop to finish
+        time.sleep(3)
+
+        log.info("salt-eventsd has shut down")
+
         # leave the cleanup to the supers stop
-        self.log.info("salt-eventsd has shut down")
         super(SaltEventsDaemon, self).stop(signal, frame)
 
+
     def start(self):
-        self.log.info("starting salt-eventsd daemon")
-        # leave the startup to the supers daemon 
+        '''
+        we override start() just for our log message
+        '''
+        log.info("starting salt-eventsd daemon")
+        # leave the startup to the supers daemon, thats where all 
+        # the daemonizing and double-forking takes place
         super(SaltEventsDaemon, self).start()
 
+
     def run(self):
-        self.log.info("starting event listener")
+        '''
+        the method automatically called by start() from
+        our parent class 
+        '''
+        log.info("starting event listener")
         self.pid = self.getPid()
         self.writeState()
         self.listen()
@@ -107,34 +136,36 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
     def pre_startup(self,
                     opts):
-        # do a startup-check if all needed parameters are 
-        # found in the configfile. this is really important
-        # because we lose stdout in daemon mode
-        required_general = [   'sock_dir',
-                               'node',
-                               'max_workers',
-                               'id',
-                               'event_limit',
-                               'pidfile',
-                               'state_file',
-                               'state_upd',
-                               'dump_timer'
-                           ]
+        '''
+        does a startup-check if all needed parameters are 
+        found in the configfile. this is really important
+        because we lose stdout in daemon mode and exceptions
+        might not be seen by the user
+        '''
+        required_general = [ 'sock_dir',
+                             'node',
+                             'max_workers',
+                             'id',
+                             'event_limit',
+                             'pidfile',
+                             'state_file',
+                             'state_upd',
+                             'dump_timer' ]
 
         for field in required_general:
             if field not in opts['general']:
-                self.log.critical("Missing required parameter '{0}' in configfile".format(field))
+                log.critical("Missing parameter '{0}' in configfile".format(field))
                 sys.exit(1)
 
-        required_mysql = [  'username',
-                            'password',
-                            'db',
-                            'host'
-                         ]
+
+        required_mysql = [ 'username',
+                           'password',
+                           'db',
+                           'host' ]
 
         for field in required_mysql:
             if field not in opts['mysql']:
-                self.log.critical("Missing required parameter '{0}' in section 'mysql'".format(field))
+                log.critical("Missing parameter '{0}' in section 'mysql'".format(field))
                 sys.exit(1)
 
 
@@ -144,21 +175,23 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                             'mysql_tab',
                             'template',
                             'dict_name',
-                            'fields'
-                          ]
+                            'fields' ]
+
         for field in required_events:
             for tag in opts['events'].keys():
                 if field not in opts['events'][tag]:
-                    self.log.critical("Missing required parameter '{0}' in event '{1}'".format(field, tag))
+                    log.critical("Missing required parameter '{0}' in event '{1}'".format(field, tag))
                     sys.exit(1)
 
 
     def listen(self):
-        event = salt.utils.event.SaltEvent(
-                self.node,
-                self.sock_dir,
-                id = self.id
-                )
+        '''
+        the main event loop where we receive the events and
+        start the workers that dump our data into the database
+        '''
+        event = salt.utils.event.SaltEvent(self.node,
+                                           self.sock_dir,
+                                           id = self.id )
 
         # we store our events in a list, we dont really care about an order
         # or what kind of data is put in there. all that is configured with the
@@ -173,18 +206,25 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         time.sleep(1)
 
         # read everything we can get our hands on
-        self.log.info("entering main event loop")
+        log.info("entering main event loop")
 
-        self.log.info("listening on: {0}".format(event.puburi))
+        log.info("listening on: {0}".format(event.puburi))
 
 
         while True:
+            # if we have received a signal like SIGKILL or SIGTERM.
+            # we have to brake the main-event-loop
             if self.shutdown:
                 break
+
+            # the zmq-socket does not like ^C very much, make the error
+            # a little more graceful. alright, alright, ignore the damn thing,
+            # we're exiting anyways...
             try:
                 ret = event.get_event(full=True)
             except zmq.ZMQError as e:
                 pass
+
             if ret is None:
                continue
 
@@ -195,7 +235,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 if (len(self.running_workers) < self.max_workers) and \
                    (len(event_queue) > 0):
 
-                    self.log.info("timer fired, starting worker #{0}".format( self.threads_cre+1 ))
+                    log.info("timer fired, starting worker #{0}".format( self.threads_cre+1 ))
                     worker = Thread(target=self.sendToMysql(event_queue), 
                                     name=str(self.threads_cre+1))
                     self.running_workers.append(worker)
@@ -214,7 +254,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 if( ret['tag'] != '' ):
                     for key in self.event_struct.keys():
                         if( self.event_struct[key]['tag'].match( ret['tag'] ) ):
-                            self.log.debug("matching on {0}:{1}".format(key, ret['tag']))
+                            log.debug("matching on {0}:{1}".format(key, ret['tag']))
                             event_queue.append(ret)
                             self.events_han += 1
 
@@ -224,22 +264,27 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
                 # only start a worker if not too many workers are running
                 if len(self.running_workers) < self.max_workers:
-                    self.log.debug("starting worker #{0}".format( self.threads_cre+1 ))
+                    log.debug("starting worker #{0}".format( self.threads_cre+1 ))
                     worker = Thread(target=self.sendToMysql(event_queue), 
                                     name=str(self.threads_cre+1))
                     self.running_workers.append(worker)
                     worker.start()
                     self.threads_cre += 1
                     # reset the timer so it does not interfere with the usual
-                    # dumping of the event-data in the queue
+                    # dumping of the event-data in the queue. we do this every time
+                    # a normal dump of the collected events occurs.
                     self.ev_timer.reset()
 
                     # reset our queue to prevent duplicate entries
                     del event_queue[:]
+
                 else:
                     # FIXME: we need to handle this situation somehow if
                     # too many workers are running. just flush the events?
-                    self.log.critial("too many workers running, loosing data!!!")
+                    # there really is no sane way except queueing more and more
+                    # until some sort of limit is reached and we care more about
+                    # our saltmaster than about the collected events!
+                    log.critical("too many workers running, loosing data!!!")
                    
             # a list for the workers that are still running
             clean_workers = []
@@ -252,7 +297,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                     clean_workers.append(worker)
                 else:
                     worker.join()
-                    self.log.debug("joined worker #{0}".format(worker.getName()))
+                    log.debug("joined worker #{0}".format(worker.getName()))
                     self.threads_join += 1
 
             # get rid of the old reference  and set a new one
@@ -263,7 +308,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             self.events_rec += 1
 
             # we update the stats every 'received div handled == 0'
-            # or if we recevied a timer event for our ResetTimer
+            # or if we recevied a timer event from our ResetTimer
             if( (self.events_rec % self.state_upd) == 0 ):
                 self.writeState()
             elif(self.ev_timer_ev):
@@ -273,29 +318,14 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             if self.shutdown:
                 break
 
-        self.log.info("listen loop ended...")                
-        self.stop()
-
-    def status(self):
-        pid = self.getPid()
-        if( os.path.exists('/proc/' + str(pid))):
-            try:
-                data = self.getState()
-                print "running with pid {0}".format(pid)
-                print "events (handled/recv): {0}/{1}".format(data['events_handled'],
-                                                              data['events_received']),
-                print "threads (created/joined): {0}/{1}".format( data['threads_created'],
-                                                                  data['threads_joined'])
-            except Exception as e:
-                self.log.critical("State in unknown format, cant print")
-                self.log.exception(e)
-                print "State in unknown format, cant print"
-        else:
-            self.log.critical("pidfile '{0}' not found. is the daemon running?".format(self.pidfile))
-
+        log.info("listen loop ended...")                
 
 
     def getPid(self):
+        '''
+        get our current pid from the pidfile, basically the 
+        same as os.getpid()
+        '''
         try:
             pf = file(self.pidfile,'r')
             pid = int(pf.read().strip())
@@ -305,16 +335,13 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         except IOError:
             return None
 
-    def getState(self):
-        data = FileReader().load(self.state_file)
-
-        if( type(opts) is dict ):
-            return data
-        else:
-            return "Failed to read state_file '{0}'".format(self.state_file)
-
 
     def writeState(self):
+        '''
+        writes a current status to the defined status-file
+        this includes the current pid, events received/handled
+        and threads created/joined
+        '''
         try:
             # write the info to the specified log
             f = open(self.state_file, 'w')
@@ -326,10 +353,10 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             # if we have the same pid as the pidfile, we are the running daemon
             # and also print the current counters to the logfile with 'info'
             if( os.getpid() == self.pid ):
-                self.log.info("running with pid {0}".format(self.pid))
-                self.log.info("events (handled/recv): {0}/{1}".format(self.events_han,
+                log.info("running with pid {0}".format(self.pid))
+                log.info("events (handled/recv): {0}/{1}".format(self.events_han,
                                                                       self.events_rec))
-                self.log.info("threads (created/joined): {0}/{1}".format( self.threads_cre,
+                log.info("threads (created/joined): {0}/{1}".format( self.threads_cre,
                                                                           self.threads_join))
 
 
@@ -337,28 +364,28 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             f.close()
             sys.stdout.flush()
         except Exception as e:
-            self.log.critical("Failed to write state, but no one can read me, what a pity")
-            self.log.exception(e)
+            log.critical("Failed to write state, but no one can read me, what a pity")
+            log.exception(e)
             pass
 
-    # this is used to pass the mysql-credentials so
-    # the threads can use on their own context
-    def initMysql(self, **kwargs):
-        self.mysql_set = kwargs
 
     # the method dumps the data into mysql. its always started
     # in its own thread and makes its own mysql-connection 
     def sendToMysql(self, qdata):
+        '''
+        write a collection of events to the database. every invocation of
+        this methoed creates its own thread that writes into the database
+        '''
 
         # create the mysql connection and get the cursor
         conn = MysqlConn(**self.mysql_set)
         cursor = conn.getCursor()
-        self.log.debug("created new mysql connection {0}".format(conn))
+        log.debug("created new mysql connection {0}".format(conn))
 
         # keep track of the queue_entries dumped
         dumped = 0
 
-        # dump all the data we received depending on the type
+        # dump all the data we have received depending on the type
         # currently there only is:
         # new_job > saltresults.command
         # jid > saltresults.results
@@ -402,30 +429,32 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                                 else:
                                     tgt_data.append( src_data[fld] ) 
 
-                        self.log.debug(sql_qry.format(tgt_table, *tgt_data ))
+                        log.debug(sql_qry.format(tgt_table, *tgt_data ))
 
                         # execute the sql_qry
                         cursor.execute( sql_qry.format(tgt_table, *tgt_data) )
                         dumped += 1
                     except Exception as e:
-                        self.log.critical("dont know how to handle: '{0}'".format(entry))
-                        self.log.exception(e)
+                        log.critical("dont know how to handle: '{0}'".format(entry))
+                        log.exception(e)
                         pass
 
-        self.log.info("dumped {0} msgs into mysql".format(dumped))
+        log.info("dumped {0} msgs into mysql".format(dumped))
         conn.comm()
         # explicitly close the connection
         conn.cls()
-        self.log.debug("closed mysql connection {0}".format( conn ) )
+        log.debug("closed mysql connection {0}".format( conn ) )
         # ensure our current qdata is really empty
         del qdata[:]
 
 
-    # this is used to tell the class about the events it should handle.
-    # it has to be a dictionary with appropriate mappings in it. see the
-    # config file for examples on how to compose the dict. each entry is
-    # converted to a precompiled regex for maximum flexibility
     def initEvents(self, events={}):
+        '''
+        this is used to tell the class about the events it should handle.
+        it has to be a dictionary with appropriate mappings in it. see the
+        config file for examples on how to compose the dict. each entry is
+        converted to a precompiled regex for maximum flexibility
+        '''
         self.event_struct = events
         # we precompile all regexes
         for key in events.keys():
@@ -434,8 +463,9 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
 if __name__ == '__main__':
 
+        # for debugging purposes the daemon can be started in the foregrund
         listener = SaltEventsDaemon()
         if( sys.argv[1] == 'fg' ):
             listener.listen()
         else:
-            print "\n\t action unknown, try one of start, stop, status, restart\n"
+            print "\n\t action unknown, we only support 'fg'\n"

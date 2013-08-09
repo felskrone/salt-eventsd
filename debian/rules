@@ -1,12 +1,9 @@
 #!/usr/bin/make -f
 
 COPYRIGHT=LICENSE
-MYSQL_DOC = doc/share/doc/*
 
 %:
 	cp $(COPYRIGHT) debian/copyright
-	mkdir -p debian/salt-eventsd/usr/share/doc/salt-eventsd/
-	cp $(MYSQL_DOC) debian/salt-eventsd/usr/share/doc/salt-eventsd/
 	dh $@ 
 
 dh_override_auto_build:

@@ -7,3 +7,8 @@ if [ -x "/etc/init.d/salt-eventsd" ]; then
 	fi
 fi
 # End automatically added section
+# Automatically added by dh_pysupport
+if which update-python-modules >/dev/null 2>&1; then
+	update-python-modules -c  salt-eventsd.public
+fi
+# End automatically added section

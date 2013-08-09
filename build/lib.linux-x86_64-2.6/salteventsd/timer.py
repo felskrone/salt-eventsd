@@ -1,18 +1,20 @@
 #!/usr/bin/python
 #
-
+# A resettable timer to have an reoccuring event which can be canceled
+#
 import threading
 import time
 import sys 
 import logging
+import salt.log
 from random import randint
 
+log = logging.getLogger(__name__)
 
 class ResetTimer(threading.Thread):
 
     running = False
     counter = 0
-    
 
     def __init__(self, 
                  interval,
@@ -20,40 +22,52 @@ class ResetTimer(threading.Thread):
         threading.Thread.__init__(self) 
         self.ref = ref
         self.interval = interval
-        self.log = logging.getLogger('mqevents')
  
 
     def run(self): 
-        self.log.info("starting event_timer")
+        log.info("starting event_timer")
         self.running = True
 
         while self.running:
 
             self.counter = 0
 
+            # run our loop until we hit out interval
+            # the counter might get reset externally
             while self.counter < self.interval:
                 self.counter += 1
 
+                # if the timer was stopped, brake the loop
                 if( self.running ):
                     time.sleep(1)
                 else:
                     break
 
+            # if set, call an external function
             if( self.ref ):
                 self.ref.timerEvent()
             else:
                 print "done"
 
     def reset(self):
-        # FIXME: the timer needs to be resettable
-        self.log.info("resetting the timer")
+        '''
+        reset the current timer to zero
+        '''
+        log.info("resetting the timer")
         self.counter = 0
 
     def stop(self):
+        '''
+        stop the timer
+        '''
         self.running = False
 
     def isRunning(self):
+        '''
+        check if the timer is still running
+        '''
         return self.running
+
 
 
 if __name__ == '__main__':

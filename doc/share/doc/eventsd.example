@@ -1,0 +1,87 @@
+###### GENERAL CONFIGURATION SETTINGS #######
+#############################################
+# general configuration settings for the daemon. Do not
+# remove any unless you really know what you're doing!
+general: 
+    # where is the socket for the events located
+    # /var/run/salt/master for salt-master
+    # /var/run/salt/minion for the salt-minion
+    # when run on a minion, always set 'node' to 'minion' too
+    sock_dir: /var/run/salt/master
+    node: master
+    # the id the listener should use while listening for events
+    # can by anything, but 'master' is advised on salt-master
+    id: master
+    # how many concurrent workers to start at most
+    max_workers: 100
+    # how many events to collect before starting a worker that dumps
+    # the collected events into the database
+    event_limit: 2
+    # where the daemon should put its pidfile
+    pidfile: /var/run/salt-eventsd.pid
+    # where the daemon should put its state_file
+    # this is plain text, just cat it
+    state_file: /var/run/salt-eventsd.status
+    # how frequently (after how many events) to update the state_file
+    state_upd: 25
+    # the loglevel to use, this is used for the logfile as well as for the 
+    # console if the daemon is started in the foreground (debug mode)
+    loglevel: debug
+    # the logfile the daemon should log into
+    logfile: /var/log/salt/eventsd
+    # after how many seconds with no collected events should the daemon
+    # start a worker to put the already collected events into the database
+    dump_timer: 60
+
+###### MYSQL CONFIGURATION SETTINGS #######
+#############################################
+# This settings configure the mysql-connection where the daemon should
+# send its collected events to. Its advisable to setup a read only connection.
+# The querys in the EVENTS-Section below are templates which can do anything!
+mysql: 
+    username: collector
+    password: Ahpoohah3shupaiz1ooj
+    db  : saltresults
+    host: localhost
+
+###### EVENT CONFIGURATION SETTINGS #######
+#############################################
+# The events the daemon should collect from the events bus. Every events must
+# have the following fields:
+# name:
+#   tag: the tag of the event to collect
+#   mysql_tab: the mysql table the event should be written into
+#   template: the sql-query to execute for this event
+#   dict_name: the name of the dictionary in the event that holds our data
+#   fields: what keys:values to take from that dict_name
+#
+# NOTE: that the number of fields taken from dict_name and the format() fields
+#       in the sql-template have to match exactly. Otherwise you will end up
+#       with wrong sql-syntax or wrong data in your sql-tables.
+events: 
+    # name of the event, can be anything, its not used anywhere but in here
+    new_job: 
+        # the tag of the event, can also be a regular expression 
+        tag: new_job
+        # the mysql-table the command should be inserted into
+        mysql_tab: command
+        # the sql-query to perform with the events data
+        template: insert into {0} (jid, user, fun, arg, tgt, tgt_type) values ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}');
+        # the dictionary that holds the events data
+        dict_name: data
+        # the fields from the dict above we want to use
+        fields: [jid, user, fun, arg, tgt, tgt_type]
+        debug: false
+
+    return: 
+        # the tag can also be set to a regular expression, 
+        # anyting regex python supports is valid
+        tag: \\d20
+        mysql_tab: results
+        template: insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');
+        dict_name: data
+        fields: [jid, id, retcode, return, success]
+        debug: false
+        
+    
+

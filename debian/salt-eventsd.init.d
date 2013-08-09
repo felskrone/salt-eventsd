@@ -38,7 +38,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 do_start()
 {
-    start-stop-daemon --start --exec /usr/bin/salt-eventsd
+    start-stop-daemon --start --exec $DAEMON -- $DAEMON_ARGS
 }
 
 do_stop()
@@ -48,45 +48,22 @@ do_stop()
 
 case "$1" in
   start)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC " "$NAME"
     do_start
-    case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
   ;;
   stop)
 	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
 	do_stop
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
 	;;
+
   status)
        status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
        ;;
-  restart|force-reload)
-	#
-	# If the "reload" option is implemented then remove the
-	# 'force-reload' alias
-	#
-	log_daemon_msg "Restarting $DESC" "$NAME"
+
+  restart)
 	do_stop
-	case "$?" in
-	  0|1)
-		do_start
-		case "$?" in
-			0) log_end_msg 0 ;;
-			1) log_end_msg 1 ;; # Old process is still running
-			*) log_end_msg 1 ;; # Failed to start
-		esac
-		;;
-	  *)
-	  	# Failed to stop
-		log_end_msg 1
-		;;
-	esac
+        # do a sleep because the daemon takes 3secs to shutdown
+        sleep 3
+        do_start
 	;;
   *)
 	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2

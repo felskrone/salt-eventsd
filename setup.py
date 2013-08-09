@@ -52,7 +52,7 @@ kwargs.update(
     packages=['salteventsd'],
     data_files=[('share/man/man1',
         ['doc/man/salt-eventsd.1']),
-        ('share/man/man7',
+        ('share/man/man5',
         ['doc/man/salt-eventsd.5'])],
     scripts=['scripts/salt-eventsd'],
 )
