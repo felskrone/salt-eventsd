@@ -2,8 +2,8 @@
 # NOTE: THIS IS NOT A WORKING CONFIGURATION! ITS BRAINDUMP
 #       OF HOW IT COULD BE DONE ON THE FUTURE.
 
-###### GENERAL CONFIGURATION SETTINGS #######
-#############################################
+###### GENERAL SETTINGS #######
+###############################
 # general configuration settings for the daemon. Do not
 # remove any unless you really know what you're doing!
 general: 
@@ -23,8 +23,8 @@ general:
     # the logfile the daemon should log into
     logfile: /var/log/salt/eventsd
 
-###### DUMPER CONFIGURATION SETTINGS #######
-#############################################
+###### DUMPER SETTINGS #######
+##############################
 # This settings configure the credentials for the dumpers used in the events
 # each dumper that requires a connection and/or authentication has to be configured
 # here before being available to the events
@@ -40,8 +40,8 @@ mongodb:
     db  : saltresults
     host: localhost
 
-###### EVENT CONFIGURATION SETTINGS #######
-#############################################
+###### EVENT SETTINGS #######
+#############################
 # The events the daemon should collect from the events bus. Every events must
 # have the following fields:
 # name:

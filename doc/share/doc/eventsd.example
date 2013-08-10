@@ -1,5 +1,5 @@
-###### GENERAL CONFIGURATION SETTINGS #######
-#############################################
+###### GENERAL SETTINGS #######
+###############################
 # general configuration settings for the daemon. Do not
 # remove any unless you really know what you're doing!
 general: 
@@ -33,8 +33,8 @@ general:
     # start a worker to put the already collected events into the database
     dump_timer: 5
 
-###### MYSQL CONFIGURATION SETTINGS #######
-#############################################
+###### MYSQL SETTINGS #######
+#############################
 # This settings configure the mysql-connection where the daemon should
 # send its collected events to. Its advisable to setup a read only connection.
 # The querys in the EVENTS-Section below are templates which can do anything!
@@ -44,8 +44,8 @@ mysql:
     db  : saltresults
     host: localhost
 
-###### EVENT CONFIGURATION SETTINGS #######
-#############################################
+###### EVENT SETTINGS #######
+#############################
 # The events the daemon should collect from the events bus. Every events must
 # have the following fields:
 # name:
