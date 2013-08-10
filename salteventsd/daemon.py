@@ -1,22 +1,30 @@
-#/usr/bin/env python
+'''
+this daemon is based on the work of Sander Marechal
+http://www.jejik.com/articles/2007/02/a_simple_unix_linux_daemon_in_python/
 
-#
-# this daemon is based on the work of Sander Marechal
-# http://www.jejik.com/articles/2007/02/a_simple_unix_linux_daemon_in_python/
-#
-# its extended with a signal handler so start-stop-daemon can be used. that change
-# also cleans up the code because stop() and restart() can be removed/shortened
-import sys, os, time, atexit
+Its extended with a signal handler so debians start-stop-daemon can be used. 
+That change also cleans up the code because stop() and restart() can be 
+removed/shortened. It has also been updated to newer python versions
+and python code styles.
+'''
+
+import sys
+import os
 import signal
+import logging
+
+log = logging.getLogger(__name__)
  
 class Daemon(object):
     '''
-    A generic daemon class.
-    
-    Usage: subclass the Daemon class and override the run() method
+    daemonizing class that does all the double-forking magic 
     '''
 
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, 
+                 pidfile, 
+                 stdin='/dev/null', 
+                 stdout='/dev/null', 
+                 stderr='/dev/null'):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -25,7 +33,12 @@ class Daemon(object):
     def stop(self,
              signal,
              frame):
+        '''
+        stop the daemon and clean up the pidfile
+        '''
         self.delpid()
+        # we call os._exit here, because sys.exit() only raises an exception
+        # and if you're in a try:except-block the exception will be caught
         os._exit(0)
 
     def daemonize(self):
@@ -39,8 +52,9 @@ class Daemon(object):
             if pid > 0:
                 # exit first parent
                 sys.exit(0)
-        except OSError, e:
-            sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
+        except OSError, oserr:
+            sys.stderr.write("fork #1 failed:{0}({1})\n".format(oserr.errno, 
+                                                                oserr.strerror))
             sys.exit(1)
 
         # decouple from parent environment
@@ -54,19 +68,20 @@ class Daemon(object):
             if pid > 0:
                 # exit from second parent
                 sys.exit(0)
-        except OSError, e:
-            sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+        except OSError, oserr:
+            sys.stderr.write("fork #2 failed:{0}({1})\n".format(oserr.errno, 
+                                                                oserr.strerror))
             sys.exit(1)
 
         # redirect standard file descriptors
         sys.stdout.flush()
         sys.stderr.flush()
-        si = file(self.stdin, 'r')
-        so = file(self.stdout, 'a+')
-        se = file(self.stderr, 'a+', 0)
-        os.dup2(si.fileno(), sys.stdin.fileno())
-        os.dup2(so.fileno(), sys.stdout.fileno())
-        os.dup2(se.fileno(), sys.stderr.fileno())
+        stdi = file(self.stdin, 'r')
+        stdo = file(self.stdout, 'a+')
+        stde = file(self.stderr, 'a+', 0)
+        os.dup2(stdi.fileno(), sys.stdin.fileno())
+        os.dup2(stdo.fileno(), sys.stdout.fileno())
+        os.dup2(stde.fileno(), sys.stderr.fileno())
 
         # register two signal handlers to handle SIGTERM and SIGKILL properly
         signal.signal(signal.SIGINT,  self.stop)
@@ -88,15 +103,14 @@ class Daemon(object):
         '''
         # Check for a pidfile to see if the daemon already runs
         try:
-            pf = file(self.pidfile,'r')
-            pid = int(pf.read().strip())
-            pf.close()
+            pidf = file(self.pidfile,'r')
+            pid = int(pidf.read().strip())
+            pidf.close()
         except IOError:
             pid = None
 
         if pid:
-            message = "pidfile %s already exist. Daemon already running?\n"
-            sys.stderr.write(message % self.pidfile)
+            sys.stderr.write("pidfile {0} already exists.\n".format(self.pidfile))
             sys.exit(1)
        
         # Start the daemon
