@@ -1,3 +1,12 @@
+salt-eventsd (0.4+2) stable; urgency=low
+
+  * pylinted everything
+  * added new worker class (not used yet)
+  * removed duplicate run() from __init__.py
+  * added installation.txt
+
+ -- Volker Schwicking <vs@hosteurope.de>  Sat, 10 Aug 2013 19:11:52 +0000
+
 salt-eventsd (0.4) stable; urgency=low
 
   * removed configreader.py (replaced by loader)
@@ -7,7 +16,7 @@ salt-eventsd (0.4) stable; urgency=low
   * renamed config from eventsd.conf to eventsd
   * moved from eventsd.log to eventsd in /var/log/salt
 
- -- Volker Schwicking <vs@hosteurope.de>  Wed, 10 Aug 2013 01:11:52 +0000
+ -- Volker Schwicking <vs@hosteurope.de>  Fri, 10 Aug 2013 01:11:52 +0000
 
 salt-eventsd (0.3) stable; urgency=low
 
