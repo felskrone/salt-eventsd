@@ -1,17 +1,19 @@
-#!/usr/bin/python
-#
-# A resettable timer to have an reoccuring event which can be canceled
-#
+'''
+A timer class that starts with an initial value and fires an event to 
+the reference given every time the timer-interval is reached. While 
+running, the timer-counter be be reset to start from the beginning.
+'''
+
 import threading
 import time
-import sys 
 import logging
-import salt.log
-from random import randint
 
 log = logging.getLogger(__name__)
 
 class ResetTimer(threading.Thread):
+    '''
+    A Resettable Timer Class 
+    '''
 
     running = False
     counter = 0
@@ -20,8 +22,8 @@ class ResetTimer(threading.Thread):
                  interval,
                  ref=False): 
         threading.Thread.__init__(self) 
-        self.ref = ref
         self.interval = interval
+        self.ref = ref
  
 
     def run(self): 
@@ -37,21 +39,24 @@ class ResetTimer(threading.Thread):
             while self.counter < self.interval:
                 self.counter += 1
 
-                # if the timer was stopped, brake the loop
+                # while we're running, sleep...
                 if( self.running ):
                     time.sleep(1)
+
+                # if the timer was stopped, brake the loop
                 else:
                     break
 
-            # if set, call an external function
+            # if the reference is set, call it
             if( self.ref ):
-                self.ref.timerEvent()
+                log.debug("timer finished, calling reference") 
+                self.ref.timer_event()
             else:
-                print "done"
+                log.debug("timer finished")
 
     def reset(self):
         '''
-        reset the current timer to zero
+        reset the timer instance's counter (i.e. restart the loop)
         '''
         log.info("resetting the timer")
         self.counter = 0
@@ -62,30 +67,10 @@ class ResetTimer(threading.Thread):
         '''
         self.running = False
 
-    def isRunning(self):
+    def is_running(self):
         '''
         check if the timer is still running
         '''
         return self.running
 
 
-
-if __name__ == '__main__':
-    try:
-        t = Timer(20)
-        t.start()
-        k = 0
-        stop = randint(1,20)
-        while True:
-            k += 1
-            if(k == stop):
-                t.reset()
-                stop = randint(1,19)
-                print "break next:", stop
-                k = 0
-            time.sleep(1)
-
-    except KeyboardInterrupt as f:
-        t.stop()
-        t.join()
-    print "exit"
