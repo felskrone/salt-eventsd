@@ -1,0 +1,57 @@
+#### salt-eventsd installation ####
+###################################
+
+last update: Aug 10th, 2013
+
+the daemon requires a very bleeding (as of today, aug 10th, 2013) edge salt 
+version that does a 'new_job' event for every job that is published.
+
+check your salt-masters version, 0.16.2 should have that event (i think).
+
+to be sure, check this commit against your salt-master source.
+https://github.com/saltstack/salt/pull/6551
+
+verified? good!
+
+installation is simple for the currently supported mysql-backend. other backends
+will follow, for now only mysql is supported.
+
+1. install mysql and create a database, name does not matter, just remember it.
+2. import the supplied mysql-dump from /usr/share/doc/salt-eventsd/ into your 
+   database. it will create two tables:
+    
+      command: thats where all published commands go
+      results: thats where all the replies go
+
+3. put the also supplied eventsd configuration from /usr/share/doc/salt-eventsd/
+   into /etc/salt/, update it with your mysql-credentials and your good to go.
+
+4. restart the daemon with its init-skript and the data should start coming in.
+   with the default config that should be the published commands and the matching
+   returns.
+
+feel free to configure the daemon for other events if desired.
+
+
+#### debugging ####
+###################
+1. set the debugging level in config to 'debug' and restart the daemon. the logfile
+   in /var/log/salt/ will (hopefully) tell you whats going wrong.
+
+2. if the daemon does not respond anymore, you're free to kill it with 'kill -9 <pid'.
+   if thats necessary, start the daemon on the command line with:
+
+       $ salt-eventsd fg
+
+   and redo what you did before. If there is an exception, it will be printed to the
+   console where the daemon is running in the foreground. I'd appreciate it, if you
+   would open an issue for that and supply the backtrace. THANK YOU!
+
+
+#### contact ####
+#################
+feel free to contact me via github or mail@blafoo.org. sometimes i'm on irc at
+kornbluth.freenode.net in #salt and/or #salt-devel with the nick 'felskrone'. but 
+please remember, that i am from europe/germany and salt is currently more popular 
+in the US. Answering might take me a day or two.
+
