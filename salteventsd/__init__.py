@@ -113,7 +113,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         if( len(self.running_workers) > 0 ):
             clean_workers = []
 
-            for count in range(0,2):
+            for count in range(0, 2):
                 for worker in self.running_workers:
                     if worker.isAlive():
                         clean_workers.append(worker)
@@ -231,9 +231,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
         log.info("entering main event loop")
         log.info("listening on: {0}".format(event.puburi))
-
-        # entering main loop, make this known
-        self.main_loop_running = True
 
         # read everything we can get our hands on
         while True:
@@ -409,8 +406,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         for key in events.keys():
             # we compile the regex configured in the config
             self.event_struct[key]['tag'] = compile( events[key]['tag'] )
-    def run(self):
-        self._store_data(self.events)
 
 
     # the method dumps the data into mysql. its always started
