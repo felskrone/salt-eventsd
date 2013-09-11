@@ -1,5 +1,5 @@
-###### GENERAL SETTINGS #######
-###############################
+###### GENERAL CONFIGURATION SETTINGS #######
+#############################################
 # general configuration settings for the daemon. Do not
 # remove any unless you really know what you're doing!
 general: 
@@ -16,7 +16,7 @@ general:
     max_workers: 100
     # how many events to collect before starting a worker that dumps
     # the collected events into the database
-    event_limit: 10
+    event_limit: 2
     # where the daemon should put its pidfile
     pidfile: /var/run/salt-eventsd.pid
     # where the daemon should put its state_file
@@ -31,21 +31,18 @@ general:
     logfile: /var/log/salt/eventsd
     # after how many seconds with no collected events should the daemon
     # start a worker to put the already collected events into the database
-    dump_timer: 5
+    dump_timer: 60
+    # we support various backends, for now only one per type. you can currently not
+    # have more than one mysql-server or more than one graphite-server
+    # this list tells the daemon about the active backends
+    backends: [MysqlWorker, GraphiteWorker]
+    # where to find the custom workers (the ones shipped with the daemon are
+    # located in /usr/share/pyshared/salteventsd/*Worker.py
+    backend_dir: /etc/salt/eventsd_workers
+       
 
-###### MYSQL SETTINGS #######
-#############################
-# This settings configure the mysql-connection where the daemon should
-# send its collected events to. Its advisable to setup a read only connection.
-# The querys in the EVENTS-Section below are templates which can do anything!
-mysql: 
-    username: collector
-    password: Ahpoohah3shupaiz1ooj
-    db  : saltresults
-    host: localhost
-
-###### EVENT SETTINGS #######
-#############################
+###### EVENT CONFIGURATION SETTINGS #######
+#############################################
 # The events the daemon should collect from the events bus. Every events must
 # have the following fields:
 # name:
@@ -61,6 +58,11 @@ mysql:
 events: 
     # name of the event, can be anything, its not used anywhere but in here
     new_job: 
+        # the backend to use for this type of event. the other fields defined
+        # have to match the backend. backend=mysql requires the template to be
+        # a mysql query, backend=graphite required the template to be a graphite-
+        # compatible data-structure, etc.
+        backend: MysqlWorker
         # the tag of the event, can also be a regular expression 
         # as long as its supported by python, properly escaped
         # and quoted. regular strings dont need quoting
@@ -76,15 +78,45 @@ events:
         debug: false
 
     return: 
-        # the tag can also be set to a regular expression, 
-        # anyting regex python supports is valid but has to
-        # be escaped and quoted to work
+        # This is a special event. It matches on all returns which have a jid as tag.
+        # It will put ALL returns into the table 'results' without looking at the return
+        # itself.
+        # The tag is defined as regex. Any regex python supports is supported
+        # but has to be escaped and quoted to work.
         tag: "\\d{20}"
+        # push all the data into mysql
+        backend: MysqlWorker
         mysql_tab: results
         template: insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');
         dict_name: data
         fields: [jid, id, retcode, return, success]
         debug: false
+
+        #  The above setting already matches on all returns that occur on the event bus. But its not always
+        # desireable, to have ALL returns in the same mysql-table. To have amore fine-grained support, you can
+        # the daemon to also look into the 'fun'-field of the return. It contains the function executed like
+        # 'test.ping' or 'cmd.run_all'. Depending on that field, the daemon will execute the corresponding
+        # 'sub-event' defined below. The sub-event completely overrides the 'default-event' above.
+
+        # again, the name does not matter, the 'fun'-field is matched against the 'fun'-fields in the return.
+        subs:
+            test.sleep:
+                fun: test.sleep
+                backend: GraphiteWorker
+                metric: sys.info.fusel
+                dict_name: data
+                # graphite backends only supports a single field
+                fields: [jid]
+
+            check_raid:
+                fun: wputil.check_raid
+                backend: HomeWorker
+                mysql_tab: results_raid
+                template: insert into {0} (jid, servername, ret_code, result) values ('{1}', '{2}', '{3}', '{4}') on duplicate key update jid='{1}', ret_code='{3}', result='{4}';
+                dict_name: data
+                fields: [jid, id, retcode, return]
+ 
+ 
         
     
 
