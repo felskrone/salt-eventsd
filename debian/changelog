@@ -1,3 +1,9 @@
+salt-eventsd (0.5+1) stable; urgency=low
+
+  * cosmetic updates to the package
+
+ -- Volker Schwicking <vs@hosteurope.de>  Wed, 11 Sep 2013 14:37:14 +0000
+
 salt-eventsd (0.5) stable; urgency=low
 
   * added multiple backend support

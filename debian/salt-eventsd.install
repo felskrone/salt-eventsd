@@ -1,3 +1,3 @@
 scripts/salt-eventsd /usr/bin
 doc/share/doc/* /usr/share/doc/salt-eventsd/
-doc/share/doc/eventsd.simple /etc/salt/eventsd
+doc/share/doc/eventsd.simple /etc/salt/
