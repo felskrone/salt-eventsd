@@ -7,114 +7,117 @@ import simplejson
 import threading
 from base64 import b64encode
 import logging
-from salteventsd.mysql import MysqlConn
+import copy
 
 log = logging.getLogger(__name__)
 
-class SaltEventsWorker(threading.Thread):
+class SaltEventsdWorker(threading.Thread):
     '''
     The worker for the salt-eventsd that pumps the data to the desired backend
     '''
 
     def __init__(self,
-                 data,
+                 qdata,
                  name,
-                 creds):
-        threading.Thread.__init__(self)
-        super(SaltEventsWorker, self).setName(name)
-        log.info("worker {0} started".format(threading.currentThread().getName()))
+                 event_map,
+                 backends):
 
-        self.events = data
-        self.mysql_set = creds
+        threading.Thread.__init__(self)
+        self.setName(name)
+
+        self.events = qdata
+        self.event_map = event_map
+        self.backends = backends
+
+        self.active_backends = {}
 
     def run(self):
-        self._store_data(self.events)
-
-
-    # the method dumps the data into mysql. its always started
-    # in its own thread and makes its own mysql-connection 
-    def _store_data(self, qdata):
         '''
-        write a collection of events to the database. every invocation of
-        this methoed creates its own thread that writes into the database
+        start method of the worker that runs
+        in its own thread
+        '''
+        log.info("worker {0} started".format(threading.currentThread().getName()))
+        self._store_data()
+
+    def _init_backend(self, backend):
+        '''
+        creates a new backend-worker
+        '''
+        setup_backend = copy.deepcopy( self.backends[backend] )
+        setup_backend.setup()
+        self.active_backends[backend] = setup_backend
+
+    def _cleanup(self):
+        '''
+        makes sure that all the workers that were started are
+        cleaning up their data and close their connections (if any)
+        '''
+        for (name, backend) in self.active_backends.items():
+            backend.shutdown()
+
+
+
+    def _store_data(self):
+        '''
+        loops through all the events and matches events against the desired
+        backends from the config. if it matches, the the backend gets initiated
+        and the event is passed to the backend with the backend-settings. the 
+        backend takes care of pushing the data further.
         '''
 
-        # create the mysql connection and get the cursor
-        conn = MysqlConn(**self.mysql_set)
-        cursor = conn.get_cursor()
+        # look through all the events and pass them on to the corresponding backend
+        # each available backend is started only, if an event requires it.
+        for entry in self.events:
+            for event in self.event_map.keys():
 
-        # keep track of the queue_entries dumped
-        dumped = 0
+                event_set = None
 
-        # dump all the data we have received depending on the type
-        # currently there only is:
-        # new_job > saltresults.command
-        # jid > saltresults.results
-        for entry in qdata:
-            for key in self.event_struct.keys():
-                if( self.event_struct[key]['tag'].match( entry['tag'] ) ):
+                # check if the event matches any of our tags from the config
+                if( self.event_map[event]['tag'].match( entry['tag'] ) ):
 
-                    try:
-                        # create a shortcut to various data
+                    # if we have match, use that settings for this event
+                    event_set = self.event_map[event]
 
-                        # the sql_template
-                        sql_qry = self.event_struct[key]['template']
-                        # the dict to use for data from the event
-                        src_dict = self.event_struct[key]['dict_name']
-                        # the fields from src_dict we need
-                        src_flds = self.event_struct[key]['fields']
-                        # our data is on the first level
-                        src_data = entry[src_dict]
 
-                        # create some target vars
-                        # the mysql-table toinsert into
-                        tgt_table = self.event_struct[key]['mysql_tab']
+                    # if the event has a subs-section, check the sub-events if they
+                    # are a match. if so, use these settings for this event. 
+                    if( self.event_map[event].has_key('subs') ):
 
-                        # the data to format the query with. it is IMPORTANT
-                        # that the ORDER AND COUNT of the variables is preserved
-                        # here. the fields-list and the template from the config
-                        # are formatted with one another to form a very flexible
-                        # sql-query. the order in the fields- and template-
-                        # variable have to match EXACTLY, otherwise the query 
-                        # will brake with an invalid syntax or maybe just end up
-                        # with wrong data 
-                        tgt_data = []
+                        for subevent in self.event_map[event]['subs'].keys():
 
-                        # create a list to format the sql_qry with, order 
-                        # is very important here! to be on the safe side, return
-                        # data is always converted to base64 and listdata always
-                        # json-dumped. the rest of the data is inserted as is
-                        for fld in src_flds:
-                            if( fld == 'return' ):
-                                tgt_data.append(b64encode( 
-                                                    simplejson.dumps(
-                                                        src_data[fld])
-                                                    )
-                                               )
-                            else:
-                                if( type(src_data[fld] ) is list ):
-                                    tgt_data.append(simplejson.dumps( 
-                                                        src_data[fld])
-                                                   ) 
-                                else: 
-                                    tgt_data.append(src_data[fld]) 
+                            # check for a 'fun'- or 'tag'-field as these are the fields we filter
+                            # by. we check for both and put the event into the corresponding backend
+                            # which we might have to create prior to adding an event
+                            if( self.event_map[event]['subs'][subevent].has_key('fun') ):
+                                if( self.event_map[event]['subs'][subevent]['fun'].match( entry['data']['fun'] ) ):
+                                    event_set = self.event_map[event]['subs'][subevent]
 
-                        log.debug(sql_qry.format(tgt_table, 
-                                                 *tgt_data))
+                            elif( self.event_map[event]['subs'][subevent].has_key('tag') ):
+                                if( self.event_map[event]['subs'][subevent]['tag'].match( entry['data']['fun'] ) ):
+                                    event_set = self.event_map[event]['subs'][subevent]
 
-                        # execute the sql_qry
-                        cursor.execute( sql_qry.format(tgt_table, 
-                                                       *tgt_data) )
-                        dumped += 1
-                    except Exception as excerr:
-                        log.critical("dont know how to handle:'{0}'".format(
-                                                                        entry)
-                                                                     )
-                        log.exception(excerr)
+                    if not event_set:
+                        log.error("event '{0}' does not match any configuration from config".format(entry))
 
-        log.info("dumped {0} events".format(dumped))
-        # commit and close the connection
-        conn.comm()
-        conn.cls()
-        # ensure our current qdata is really empty
-        del qdata[:]
+                    else:
+                        # if the matched event_set still has (not matching) 'subs', remove them
+                        if( event_set.has_key('subs') ):
+                            del event_set['subs']
+
+                        log.debug("")
+                        log.debug("event match details:")
+                        log.debug("event_set: {0}".format(event_set))
+                        log.debug("event: {0}".format(entry))
+                        log.debug("")
+
+                        # if the backend for this type of event has not 
+                        # been initiated yet, take care of that
+                        if not ( event_set['backend'] in self.active_backends.keys() ):
+                            self._init_backend(event_set['backend'])
+
+                        # finally send that event to the backend with its config-settings
+                        self.active_backends[ event_set['backend'] ].send(entry, event_set)
+
+        # have all backends clean up their cleanup
+        self._cleanup()
+

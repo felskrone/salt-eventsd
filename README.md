@@ -11,8 +11,10 @@ certain events can be collected into an event-queue and written into a database.
 ### Usage Examples
 - collect all events with tag 'new_job' to have a job-history that lasts longer than saltstacks job-cache
 - collect all job returns by matching on jids returned from minions to have a database with all returns you can index, search, etc.
+- filter these events into different backends, for example graphite, mysql, redis, whatever
 - collect historic data like load average etc. by collecting events with tag 'load' which are created by your own load-monitoring module
 - create and collect your own custom events with the data you want in an external database
+- have multiple different backend-workers that push your data where ever you want it, its just a few lines of python-code
 - etc.
 
 ### Why this is useful / Who needs this?
@@ -28,7 +30,10 @@ few querys.
 More info will follow soon :-)
 
 ### Features
-- collect events from the salt-event-bus into a database
+- collect events from the salt-event-bus into a different databases
+- have a mail sent to you if a specific event occurs
+- have statistical data sent to your graphite-hosts,
+- more...
 - use regular expressions for matching on tags, very flexible and powerful
 - create your own sql-query-templates for inserting data into the database 
 - fully saltstack-job-cache independant database to hold all data you want in it

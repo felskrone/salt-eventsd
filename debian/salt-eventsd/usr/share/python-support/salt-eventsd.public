@@ -1,5 +1,6 @@
 /usr/share/pyshared/salt_eventsd-0.3.egg-info
 /usr/share/pyshared/salteventsd/__init__.py
+/usr/share/pyshared/salteventsd/backends.py
 /usr/share/pyshared/salteventsd/daemon.py
 /usr/share/pyshared/salteventsd/loader.py
 /usr/share/pyshared/salteventsd/mysql.py

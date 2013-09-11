@@ -58,7 +58,7 @@ class ResetTimer(threading.Thread):
         '''
         reset the timer instance's counter (i.e. restart the loop)
         '''
-        log.info("resetting the timer")
+        log.debug("resetting the timer")
         self.counter = 0
 
     def stop(self):

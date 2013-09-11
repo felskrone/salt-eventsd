@@ -108,8 +108,8 @@ events:
                 # graphite backends only supports a single field
                 fields: [jid]
 
-            check_raid:
-                fun: wputil.check_raid
+            raid_check:
+                fun: myutils.check_raid
                 backend: HomeWorker
                 mysql_tab: results_raid
                 template: insert into {0} (jid, servername, ret_code, result) values ('{1}', '{2}', '{3}', '{4}') on duplicate key update jid='{1}', ret_code='{3}', result='{4}';

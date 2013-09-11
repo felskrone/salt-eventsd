@@ -13,8 +13,7 @@ https://github.com/saltstack/salt/pull/6551
 
 verified? good!
 
-installation is simple for the currently supported mysql-backend. other backends
-will follow, for now only mysql is supported.
+installation is simple for the mysql-backend.
 
 1. install mysql and create a database, name does not matter, just remember it.
 2. import the supplied mysql-dump from /usr/share/doc/salt-eventsd/ into your 
@@ -24,13 +23,57 @@ will follow, for now only mysql is supported.
       results: thats where all the replies go
 
 3. put the also supplied eventsd configuration from /usr/share/doc/salt-eventsd/
-   into /etc/salt/, update it with your mysql-credentials and your good to go.
+   into /etc/salt/. 
 
-4. restart the daemon with its init-skript and the data should start coming in.
-   with the default config that should be the published commands and the matching
-   returns.
+4. put the backend /usr/share/doc/salt-eventsd/MysqlWorker.py into /etc/salt/eventsd_workers/
 
-feel free to configure the daemon for other events if desired.
+5. restart the daemon with its init-skript and the data should start coming in
+   once you issue a few commands to your minions. issued commands can be found in the 
+   'commands'-table, the results in 'results'.
+
+
+A few words on filtering:
+The salt-eventsd reads all events from the event-bus which match the tags configured
+in the config (others are ignored). The results the minions return, always have a jid
+as tag. Matching on that to get all the returns is no problem, but its not possible to 
+filter and sort any further just by the tag.
+
+If collecting all results is good enough for you, you're fine. The sample-config already contrains 
+an event-definition that puts all results into the 'results'-table.
+
+If you have more filtering- and sorting-needs, you have to define sub-events under the 
+'return'-event. Why under the return-event? Because it already matches on returns. The sub-events
+just give more control over an already matched result.
+
+Example:
+
+test.ping would return something like this:
+
+  {'tag': '20130911154847888287', 
+   'data': {'jid': '20130911154847888287', 
+            'return': True, 
+	    'retcode': 0, 
+	    'success': True, 
+	    'cmd': '_return', 
+	    'fun': 'test.ping', 
+	    'id': 'wp033.webpack.hosteurope.de'}
+  }
+
+Because the 'return'-event matches on the 20-digit tag, the result would be put into
+the 'results'table. That works for all events as long as the 'return'-event is left in
+the config-file. By defining a sub-event under the 'return'-event, the event will by processed
+further.
+
+After matching the 20-digit-tag, the daemon will check, if there a more events defined under the
+'return'-event. If so, the daemon will check all sub-events if they match on the 'fun'-field and
+use that sub-event-config if it matches. See the config-file for sub-event configurations.
+
+
+New backend-feature:
+With 0.5 the daemon can handle multiple backends. You can have your minion-returns in 
+different mysql-tables, or have them sent to a graphite server, or, or, or. Its up to you,
+you can easily write you own workers that do whatever you want them to. They just have to 
+follow a few guidelines.
 
 
 #### debugging ####

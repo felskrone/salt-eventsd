@@ -14,9 +14,10 @@ import salt.utils.event
 import logging
 import salt.log
 from salteventsd.timer import ResetTimer
-from salteventsd.mysql import MysqlConn
+#from salteventsd.mysql import MysqlConn
 from salteventsd.loader import SaltEventsdLoader
-#from salteventsd.worker import SaltEventsdWorker
+from salteventsd.worker import SaltEventsdWorker
+from salteventsd.backends import BackendMngr
 import salteventsd.daemon
 import zmq
 
@@ -41,10 +42,13 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.config = self.opts['general']
         super(SaltEventsDaemon, self).__init__(self.config['pidfile'])
 
-        # safe the mysql-parameter in there own variable
-        self.mysql_set = self.opts['mysql']
+#        # safe the mysql-parameter in there own variable
+#        self.mysql_set = self.opts['mysql']
 
         self._init_events(self.opts['events'])
+
+        self.backends = self._init_backends( self.config['backends'] )
+        log.info(self.backends)
 
         # the socket to listen on for the events
         self.sock_dir = self.config['sock_dir']
@@ -179,32 +183,32 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 sys.exit(1)
 
 
-        required_mysql = [ 'username',
-                           'password',
-                           'db',
-                           'host' ]
-
-        for field in required_mysql:
-            if field not in opts['mysql']:
-                log.critical("Missing parameter " + \
-                             "'{0}' in section 'mysql'".format(field))
-                sys.exit(1)
-
-
-        # here we check if all configured events have the required fields       
-        # because there are no optional ones!
-        required_events = [ 'tag',
-                            'mysql_tab',
-                            'template',
-                            'dict_name',
-                            'fields' ]
-
-        for field in required_events:
-            for tag in opts['events'].keys():
-                if field not in opts['events'][tag]:
-                    log.critical("Event'{0}': missing".format(tag) + \
-                                 "parameter '{0}'".format(field))
-                    sys.exit(1)
+#        required_mysql = [ 'username',
+#                           'password',
+#                           'db',
+#                           'host' ]
+#
+#        for field in required_mysql:
+#            if field not in opts['mysql']:
+#                log.critical("Missing parameter " + \
+#                             "'{0}' in section 'mysql'".format(field))
+#                sys.exit(1)
+#
+#
+#        # here we check if all configured events have the required fields       
+#        # because there are no optional ones!
+#        required_events = [ 'tag',
+#                            'mysql_tab',
+#                            'template',
+#                            'dict_name',
+#                            'fields' ]
+#
+#        for field in required_events:
+#            for tag in opts['events'].keys():
+#                if field not in opts['events'][tag]:
+#                    log.critical("Event'{0}': missing".format(tag) + \
+#                                 "parameter '{0}'".format(field))
+#                    sys.exit(1)
 
 
     def listen(self):
@@ -253,13 +257,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 if (len(self.running_workers) < self.max_workers) and \
                    (len(event_queue) > 0):
 
-                    log.info("starting worker #{0}".format(self.threads_cre+1))
-                    worker = Thread(target=self._init_worker(event_queue), 
-                                    name=str(self.threads_cre+1))
- 
-                    self.running_workers.append(worker)
-                    worker.start()
-                    self.threads_cre += 1
+                    self._init_worker(event_queue)
 
                     # reset our queue to prevent duplicate entries
                     del event_queue[:]
@@ -277,8 +275,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                        
                     # run through our configured events and try to match the 
                     # current events tag against the ones we're interested in
-                    for key in self.event_struct.keys():
-                        if( self.event_struct[key]['tag'].match(ret['tag'])):
+                    for key in self.event_map.keys():
+                        if( self.event_map[key]['tag'].match(ret['tag'])):
                             log.debug("matching on {0}:{1}".format(key, 
                                                                    ret['tag']))
                             event_queue.append(ret)
@@ -290,15 +288,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
                 # only start a worker if not too many workers are running
                 if len(self.running_workers) < self.max_workers:
-                    log.debug("starting worker #{0}".format(self.threads_cre+1))
-                    worker = Thread(target=self._init_worker(event_queue), 
-                                    name=str(self.threads_cre+1))
-                    self.running_workers.append(worker)
-                    worker.start()
-                    self.threads_cre += 1
-                    # reset the timer so it does not interfere with the usual
-                    # dumping of the event-data in the queue. we do this every 
-                    # time a normal dump of the collected events occurs.
+                    self._init_worker(event_queue)
+                    # reset the timer
                     self.ev_timer.reset()
 
                     # reset our queue to prevent duplicate entries
@@ -393,6 +384,12 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             log.critical("Failed to write state to {0}".format(self.state_file))
             log.exception(oserr)
 
+    def _init_backends(self, backends):
+        backend_mngr = BackendMngr( ['/usr/share/pyshared/salteventsd/',
+                                    self.config['backend_dir'] ] )
+        return backend_mngr.loadPlugins()
+
+
 
     def _init_events(self, events={}):
         '''
@@ -401,98 +398,48 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         config file for examples on how to compose the dict. each entry is
         converted to a precompiled regex for maximum flexibility
         '''
-        self.event_struct = events
+        self.event_map = events
         # we precompile all regexes
+        log.info("initialising events...")
         for key in events.keys():
             # we compile the regex configured in the config
-            self.event_struct[key]['tag'] = compile( events[key]['tag'] )
+            self.event_map[key]['tag'] = compile( events[key]['tag'] )
+            log.info("Added event '{0}'".format(key))
 
+            # if subevents are configured, also update them with 
+            # regex-macthing object
+            if( events[key].has_key('subs') ):
+                for sub_ev in events[key]['subs'].keys():
+                    try:
+                        self.event_map[key]['subs'][sub_ev]['fun'] = compile(events[key]['subs'][sub_ev]['fun'])
+                    except KeyError, k:
+                        pass
 
-    # the method dumps the data into mysql. its always started
-    # in its own thread and makes its own mysql-connection 
+                    try:
+                        self.event_map[key]['subs'][sub_ev]['tag'] = compile(events[key]['subs'][sub_ev]['tag'])
+                    except KeyError, k2:
+                        pass
+
+                    log.info("Added sub-event '{0}->{1}'".format(key,
+                                                                 sub_ev))
+
+    # the method dumps the data into a worker thread which 
+    # handles pushing the data into different backends
     def _init_worker(self, qdata):
         '''
         write a collection of events to the database. every invocation of
         this methoed creates its own thread that writes into the database
         '''
+        self.threads_cre += 1
 
-        # create the mysql connection and get the cursor
-        conn = MysqlConn(**self.mysql_set)
-        cursor = conn.get_cursor()
+        log.info("starting worker #{0}".format(self.threads_cre))
 
-        # keep track of the queue_entries dumped
-        dumped = 0
+        # make sure we pass a copy of the list
+        worker = SaltEventsdWorker(list(qdata),
+                                   self.threads_cre,
+                                   self.event_map,
+                                   self.backends)
 
-        # dump all the data we have received depending on the type
-        # currently there only is:
-        # new_job > saltresults.command
-        # jid > saltresults.results
-        for entry in qdata:
-            for key in self.event_struct.keys():
-                if( self.event_struct[key]['tag'].match( entry['tag'] ) ):
-
-                    try:
-                        # create a shortcut to various data
-
-                        # the sql_template
-                        sql_qry = self.event_struct[key]['template']
-                        # the dict to use for data from the event
-                        src_dict = self.event_struct[key]['dict_name']
-                        # the fields from src_dict we need
-                        src_flds = self.event_struct[key]['fields']
-                        # our data is on the first level
-                        src_data = entry[src_dict]
-
-                        # create some target vars
-                        # the mysql-table toinsert into
-                        tgt_table = self.event_struct[key]['mysql_tab']
-
-                        # the data to format the query with. it is IMPORTANT
-                        # that the ORDER AND COUNT of the variables is preserved
-                        # here. the fields-list and the template from the config
-                        # are formatted with one another to form a very flexible
-                        # sql-query. the order in the fields- and template-
-                        # variable have to match EXACTLY, otherwise the query 
-                        # will brake with an invalid syntax or maybe just end up
-                        # with wrong data 
-                        tgt_data = []
-
-                        # create a list to format the sql_qry with, order 
-                        # is very important here! to be on the safe side, return
-                        # data is always converted to base64 and listdata always
-                        # json-dumped. the rest of the data is inserted as is
-                        for fld in src_flds:
-                            if( fld == 'return' ):
-                                tgt_data.append(b64encode(
-                                                    simplejson.dumps(
-                                                        src_data[fld])
-                                                    )
-                                               )
-                            else:
-                                if( type(src_data[fld] ) is list ):
-                                    tgt_data.append(simplejson.dumps(
-                                                        src_data[fld])
-                                                   )
-                                else:
-                                    tgt_data.append(src_data[fld])
-
-                        log.debug(sql_qry.format(tgt_table,
-                                                 *tgt_data))
-
-                        # execute the sql_qry
-                        cursor.execute( sql_qry.format(tgt_table,
-                                                       *tgt_data) )
-                        dumped += 1
-                    except Exception as excerr:
-                        log.critical("dont know how to handle:'{0}'".format(
-                                                                        entry)
-                                                                     )
-                        log.exception(excerr)
-
-        log.info("dumped {0} events".format(dumped))
-        # commit and close the connection
-        conn.comm()
-        conn.cls()
-        # ensure our current qdata is really empty
-        del qdata[:]
+        worker.start()
+        self.running_workers.append(worker)
 
