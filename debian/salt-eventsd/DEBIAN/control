@@ -1,5 +1,5 @@
 Package: salt-eventsd
-Version: 0.5
+Version: 0.5+1
 Architecture: all
 Maintainer: Volker Schwicking <vs@hosteurope.de>
 Installed-Size: 200

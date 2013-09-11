@@ -1,1 +1,15 @@
-mv /etc/salt/eventsd.simple /etc/salt/eventsd
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    configure)
+        mv /etc/salt/eventsd.simple /etc/salt/eventsd
+	if ! [ -d /etc/salt/eventsd_workers ]
+	then
+	    mkdir /etc/salt/eventsd_workers
+	fi
+        zcat /usr/share/doc/salt-eventsd/eventsd_workers/MysqlWorker.py.gz > /etc/salt/eventsd_workers/MysqlWorker.py
+	/usr/sbin/update-python-modules -f
+    ;;
+esac

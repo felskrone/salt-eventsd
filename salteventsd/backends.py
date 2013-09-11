@@ -30,10 +30,6 @@ class BackendMngr(object):
         (path, name) = os.path.split(filename)
         (name, ext) = os.path.splitext(name)
 
-        log.info("path: {0}".format( path))
-        log.info("name: {0}".format( name))
-        log.info("ext: {0}".format( ext))
-
         # if we try to load a module from file, the module might be using import to import other libraries, for example
         # a WebpackLib.py. since we import a plugin by full-path-name which is usually NOT in the python-search-path,
         # a library would have to reside in the same directory as the plugin to be found. 
