@@ -1,3 +1,10 @@
+salt-eventsd (0.5) stable; urgency=low
+
+  * added multiple backend support
+  * added sub-events to aid filter-ability
+
+ -- Volker Schwicking <vs@hosteurope.de>  Wed, 11 Sep 2013 14:18:14 +0000
+
 salt-eventsd (0.4+2) stable; urgency=low
 
   * pylinted everything
