@@ -2,7 +2,8 @@
 
 THIS IS STILL IN DEVELOPMENT AND IN ITS EARLY STAGES. NOT READY FOR PRODUCTION YET!
 
-A event-listener daemon for saltstack that writes data into a database
+A event-listener daemon for saltstack that writes data into a database, statistical data into graphite
+basically every returned value from minions into anything :-)
 
 It connects to the salt-masters event-bus and listens for all events. Depending on the configuration,
 certain events can be collected into an event-queue and written into a database. 

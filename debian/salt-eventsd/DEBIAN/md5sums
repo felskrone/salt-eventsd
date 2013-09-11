@@ -1,5 +1,5 @@
 9a70412a443980ca9d6fbc0383945a79  usr/bin/salt-eventsd
-24626b58fc675d48ec3146d0cf0838ec  usr/share/doc/salt-eventsd/changelog.gz
+d26ea5877cbb19682f462c2e083ce1a5  usr/share/doc/salt-eventsd/changelog.gz
 d7aabb178afb58bde9a831e77464cefe  usr/share/doc/salt-eventsd/copyright
 ff8e1beb90b6309dda239fb3c6cdd40d  usr/share/doc/salt-eventsd/eventsd.extended.gz
 72890f5e93bc4c83a68069af3f796b79  usr/share/doc/salt-eventsd/eventsd.simple.gz
@@ -11,7 +11,7 @@ f2bd560bd964b56d6a8abe515718d38e  usr/share/doc/salt-eventsd/eventsd_workers/Mys
 938ae313b3517dd9dbafe3a56621dac0  usr/share/man/man5/salt-eventsd.5.gz
 da75074a94698139fad397b5fc5c4f6a  usr/share/pyshared/salt_eventsd-0.3.egg-info
 7a0d0a6bc5c27c838e059f30710e2d3b  usr/share/pyshared/salteventsd/__init__.py
-c7fc32e6c9c61eb717dc880b783677c8  usr/share/pyshared/salteventsd/backends.py
+045ddda61eedb693d9bdc050248aaa91  usr/share/pyshared/salteventsd/backends.py
 8f2decaca2a8bfc5f44e291218f22209  usr/share/pyshared/salteventsd/daemon.py
 9b1793ee5fb5ac73835792aa57d85bc4  usr/share/pyshared/salteventsd/loader.py
 f024e8a47f8b140fdc72a359fbc9b0d0  usr/share/pyshared/salteventsd/mysql.py
