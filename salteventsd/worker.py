@@ -3,9 +3,7 @@ This is the main SaltEventsDaemon class. It holds all the logic that listens
 for events, collects events and starts all the workers to dump data.
 '''
 
-import simplejson
 import threading
-from base64 import b64encode
 import logging
 import copy
 
@@ -36,7 +34,7 @@ class SaltEventsdWorker(threading.Thread):
         start method of the worker that runs
         in its own thread
         '''
-        log.info("worker {0} started".format(threading.currentThread().getName()))
+        log.info("{0} started".format(threading.currentThread().getName()))
         self._store_data()
 
     def _init_backend(self, backend):
@@ -55,8 +53,6 @@ class SaltEventsdWorker(threading.Thread):
         for (name, backend) in self.active_backends.items():
             backend.shutdown()
 
-
-
     def _store_data(self):
         '''
         loops through all the events and matches events against the desired
@@ -65,8 +61,9 @@ class SaltEventsdWorker(threading.Thread):
         backend takes care of pushing the data further.
         '''
 
-        # look through all the events and pass them on to the corresponding backend
-        # each available backend is started only, if an event requires it.
+        # look through all the events and pass them on to the corresponding 
+	# backend each available backend is started only, if an event requires
+	# it.
         for entry in self.events:
             for event in self.event_map.keys():
 
@@ -78,16 +75,16 @@ class SaltEventsdWorker(threading.Thread):
                     # if we have match, use that settings for this event
                     event_set = self.event_map[event]
 
-
-                    # if the event has a subs-section, check the sub-events if they
-                    # are a match. if so, use these settings for this event. 
+                    # if the event has a subs-section, check the sub-events if 
+		    # they match. if so, use these settings for this event. 
                     if( self.event_map[event].has_key('subs') ):
 
                         for subevent in self.event_map[event]['subs'].keys():
 
-                            # check for a 'fun'- or 'tag'-field as these are the fields we filter
-                            # by. we check for both and put the event into the corresponding backend
-                            # which we might have to create prior to adding an event
+                            # check for 'fun'- or 'tag'-field as these are the 
+			    # fields we filter by. we check for both and put 
+			    # the event into the corresponding backend which 
+			    # we might have to create prior to adding an event
                             if( self.event_map[event]['subs'][subevent].has_key('fun') ):
                                 if( self.event_map[event]['subs'][subevent]['fun'].match( entry['data']['fun'] ) ):
                                     event_set = self.event_map[event]['subs'][subevent]
@@ -97,10 +94,11 @@ class SaltEventsdWorker(threading.Thread):
                                     event_set = self.event_map[event]['subs'][subevent]
 
                     if not event_set:
-                        log.error("event '{0}' does not match any configuration from config".format(entry))
+                        log.error("event '{0}' not found in config".format(entry))
 
                     else:
-                        # if the matched event_set still has (not matching) 'subs', remove them
+                        # if the matched event_set still has (not matching) 
+			# 'subs', remove them
                         if( event_set.has_key('subs') ):
                             del event_set['subs']
 
@@ -115,7 +113,8 @@ class SaltEventsdWorker(threading.Thread):
                         if not ( event_set['backend'] in self.active_backends.keys() ):
                             self._init_backend(event_set['backend'])
 
-                        # finally send that event to the backend with its config-settings
+                        # finally send that event to the backend including
+			# the config-set for this event
                         self.active_backends[ event_set['backend'] ].send(entry, event_set)
 
         # have all backends clean up their cleanup
