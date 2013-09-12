@@ -387,7 +387,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
     def _init_backends(self, backends):
         backend_mngr = BackendMngr( ['/usr/share/pyshared/salteventsd/',
                                     self.config['backend_dir'] ] )
-        return backend_mngr.loadPlugins()
+        return backend_mngr.load_plugins()
 
 
 
