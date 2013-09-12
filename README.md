@@ -40,4 +40,3 @@ More info will follow soon :-)
 - fully saltstack-job-cache independant database to hold all data you want in it
 - etc.
 
-
