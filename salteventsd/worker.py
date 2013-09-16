@@ -99,8 +99,8 @@ class SaltEventsdWorker(threading.Thread):
                     else:
                         # if the matched event_set still has (not matching) 
 			# 'subs', remove them
-                        if( event_set.has_key('subs') ):
-                            del event_set['subs']
+#                        if( event_set.has_key('subs') ):
+#                            del event_set['subs']
 
                         log.debug("")
                         log.debug("event match details:")

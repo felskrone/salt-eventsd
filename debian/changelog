@@ -1,3 +1,9 @@
+salt-eventsd (0.5+3) stable; urgency=low
+
+  * fixed mantis: 0000797
+
+ -- root <root@bob.intern.webpack.hosteurope.de>  Mon, 16 Sep 2013 14:27:34 +0000
+
 salt-eventsd (0.5+2) stable; urgency=low
 
   * fixed postrm/postinst

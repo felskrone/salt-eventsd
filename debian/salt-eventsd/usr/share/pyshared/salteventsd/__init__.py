@@ -42,9 +42,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.config = self.opts['general']
         super(SaltEventsDaemon, self).__init__(self.config['pidfile'])
 
-#        # safe the mysql-parameter in there own variable
-#        self.mysql_set = self.opts['mysql']
-
+	# the map of events are stored here, loaded in _init_events()
+	self.event_map = None
         self._init_events(self.opts['events'])
 
         self.backends = self._init_backends( self.config['backends'] )
@@ -181,34 +180,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 log.critical("Missing parameter " + 
                              "'{0}' in configfile".format(field))
                 sys.exit(1)
-
-
-#        required_mysql = [ 'username',
-#                           'password',
-#                           'db',
-#                           'host' ]
-#
-#        for field in required_mysql:
-#            if field not in opts['mysql']:
-#                log.critical("Missing parameter " + \
-#                             "'{0}' in section 'mysql'".format(field))
-#                sys.exit(1)
-#
-#
-#        # here we check if all configured events have the required fields       
-#        # because there are no optional ones!
-#        required_events = [ 'tag',
-#                            'mysql_tab',
-#                            'template',
-#                            'dict_name',
-#                            'fields' ]
-#
-#        for field in required_events:
-#            for tag in opts['events'].keys():
-#                if field not in opts['events'][tag]:
-#                    log.critical("Event'{0}': missing".format(tag) + \
-#                                 "parameter '{0}'".format(field))
-#                    sys.exit(1)
 
 
     def listen(self):
@@ -359,11 +330,11 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         try:
             # write the info to the specified log
             statf = open(self.state_file, 'w')
-            statf.writelines( simplejson.dumps( {'events_received':self.events_rec,
-                                             'events_handled':self.events_han,
-                                             'threads_created':self.threads_cre,
-                                             'threads_joined':self.threads_join}
-                                          ))
+            statf.writelines(simplejson.dumps({'events_received':self.events_rec,
+                                               'events_handled':self.events_han,
+                                               'threads_created':self.threads_cre,
+                                               'threads_joined':self.threads_join}
+                                             ))
             # if we have the same pid as the pidfile, we are the running daemon
             # and also print the current counters to the logfile with 'info'
             if( os.getpid() == self.pid ):
@@ -387,7 +358,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
     def _init_backends(self, backends):
         backend_mngr = BackendMngr( ['/usr/share/pyshared/salteventsd/',
                                     self.config['backend_dir'] ] )
-        return backend_mngr.loadPlugins()
+        return backend_mngr.load_plugins()
 
 
 
@@ -412,12 +383,12 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 for sub_ev in events[key]['subs'].keys():
                     try:
                         self.event_map[key]['subs'][sub_ev]['fun'] = compile(events[key]['subs'][sub_ev]['fun'])
-                    except KeyError, k:
+                    except KeyError:
                         pass
 
                     try:
                         self.event_map[key]['subs'][sub_ev]['tag'] = compile(events[key]['subs'][sub_ev]['tag'])
-                    except KeyError, k2:
+                    except KeyError:
                         pass
 
                     log.info("Added sub-event '{0}->{1}'".format(key,

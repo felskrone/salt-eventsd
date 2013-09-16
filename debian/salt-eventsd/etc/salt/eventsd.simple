@@ -14,69 +14,63 @@ general:
     id: master
     # how many concurrent workers to start at most
     max_workers: 100
-    # how many events to collect before starting a worker that dumps
-    # the collected events into the database
+    # how many events to collect before starting a worker 
+    # that dumps the collected events into the database
     event_limit: 2
     # where the daemon should put its pidfile
     pidfile: /var/run/salt-eventsd.pid
     # where the daemon should put its state_file
     # this is plain text, just cat it
     state_file: /var/run/salt-eventsd.status
-    # how frequently (after how many events) to update the state_file
+    # how frequently (after how many collected events) to 
+    # update the state_file
     state_upd: 25
-    # the loglevel to use, this is used for the logfile as well as for the 
-    # console if the daemon is started in the foreground (debug mode)
+    # the loglevel to use for logging
     loglevel: debug
     # the logfile the daemon should log into
     logfile: /var/log/salt/eventsd
     # after how many seconds with no collected events should the daemon
     # start a worker to put the already collected events into the database
     dump_timer: 60
-    # we support various backends, for now only one per type. you can currently not
-    # have more than one mysql-server or more than one graphite-server
-    # this list tells the daemon about the active backends
+    # the backends to load on daemon-start, see the documentation in 
+    # /usr/share/doc/salt-eventsd/backends.txt on how to write your own
     backends: [MysqlWorker, GraphiteWorker]
-    # where to find the custom workers (the ones shipped with the daemon are
-    # located in /usr/share/pyshared/salteventsd/*Worker.py
+    # where to find the active backends 
     backend_dir: /etc/salt/eventsd_workers
        
 
 ###### EVENT CONFIGURATION SETTINGS #######
 #############################################
-# The events the daemon should collect from the events bus. Every events must
-# have the following fields:
-# name:
-#   tag: the tag of the event to collect
-#   mysql_tab: the mysql table the event should be written into
-#   template: the sql-query to execute for this event
-#   dict_name: the name of the dictionary in the event that holds our data
-#   fields: what keys:values to take from that dict_name
-#
-# NOTE: that the number of fields taken from dict_name and the format() fields
-#       in the sql-template have to match exactly. Otherwise you will end up
-#       with wrong sql-syntax or wrong data in your sql-tables.
+# The events the daemon should collect from the events bus. These two
+# settings define two events to listen for (new jobs and their replys) 
+# and they are put into a mysql-database that already has to exist 
+# (see the installation.txt)
 events: 
     # name of the event, can be anything, its not used anywhere but in here
     new_job: 
-        # the backend to use for this type of event. the other fields defined
-        # have to match the backend. backend=mysql requires the template to be
-        # a mysql query, backend=graphite required the template to be a graphite-
-        # compatible data-structure, etc.
+        # the backend to use for this type of event. the fields 'backend' and
+	# 'tag' are the only two relevant fields to the daemon for matching an
+	# event to a backend. the event itself and the rest of the fields are 
+	# passed on to the backend and have to be handled in there.
         backend: MysqlWorker
-        # the tag of the event, can also be a regular expression 
-        # as long as its supported by python, properly escaped
-        # and quoted. regular strings dont need quoting
+        # the tag of the event to we want to match
+        # regexes are also supported as long as python supports them
         tag: new_job
         # the mysql-table the command should be inserted into
         mysql_tab: command
         # the sql-query to perform with the events data
         template: insert into {0} (jid, user, fun, arg, tgt, tgt_type) values ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}');
-        # the dictionary that holds the events data
+        # the dictionary-name in the event that holds the data we're interested in
         dict_name: data
         # the fields from the dict above we want to use
         fields: [jid, user, fun, arg, tgt, tgt_type]
+	# enable debugging for the backend
         debug: false
 
+    # This event matches on ALL results returned from a minion due to the tag being
+    # defined as a 20-digit-number (ALL returns have the jid as tag). By default all 
+    # results will be put in the table defined by the 'mysql_tag' fields (defaults to
+    # 'results'). 
     return: 
         # This is a special event. It matches on all returns which have a jid as tag.
         # It will put ALL returns into the table 'results' without looking at the return
@@ -84,10 +78,18 @@ events:
         # The tag is defined as regex. Any regex python supports is supported
         # but has to be escaped and quoted to work.
         tag: "\\d{20}"
-        # push all the data into mysql
+        # the backend where to send events that match this tag
         backend: MysqlWorker
+	# the mysql-table the data should be written to (mysql-credentials are currently
+	# defined in the backend itself) but can also be defined here.
         mysql_tab: results
+	# the mysql-query-template to format and execute
         template: insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');
+	# the dictionary-name WITHIN the returned event-dictionary 
+	# that holds the data we're interested in.
         dict_name: data
+        # the fields from the dict_name-dictionary we want in the query. always make sure, 
+	# that the order in the template above and the fields defined here match in count
         fields: [jid, id, retcode, return, success]
+	# enable debugging for this event
         debug: false
