@@ -87,8 +87,14 @@ class New_Job_Worker(object):
             src_flds = event_set['fields']
             # our data is on the first level
             src_data = event[src_dict]
+   
+            # there one event we want to ignore. it just contains
+            # 'tag': '20140228142919397750', 'data': {'_stamp': '2014-02-28_14:29:19.398033', 'minions': ['wp033.webpack.hosteurope.de']}
+            # its used by salt internally so we skip it
+            if 'minions' in src_data:
+                return
 
-            # the mysql-table toinsert into
+            # the mysql-table to insert into
             tgt_table = event_set['mysql_tab']
 
             # the data to format the query with. it is IMPORTANT
