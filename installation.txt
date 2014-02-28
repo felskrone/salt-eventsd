@@ -1,35 +1,48 @@
 #### salt-eventsd installation ####
 ###################################
 
-last update: Aug 10th, 2013
+last update: Feb 28th, 2014
 
-the daemon requires a very bleeding (as of today, aug 10th, 2013) edge salt 
-version that does a 'new_job' event for every job that is published.
+the daemon requires at least saltstack 0.16.2 with the 'new_job' event. 
 
-check your salt-masters version, 0.16.2 should have that event (i think).
-
-to be sure, check this commit against your salt-master source.
+check this commit against your salt-master source.
 https://github.com/saltstack/salt/pull/6551
 
 verified? good!
 
 installation is simple for the mysql-backend.
 
-1. install mysql and create a database, name does not matter, just remember it.
+1. install mysql-server and create a database, name does not matter, just remember it.
 2. import the supplied mysql-dump from /usr/share/doc/salt-eventsd/ into your 
-   database. it will create two tables:
+   database. 
+   
+   $ cat /usr/share/doc/salt-eventsd/mysql-example.sql | mysql <database_name>
+
+   it will create two tables:
     
-      command: thats where all published commands go
-      results: thats where all the replies go
+      <database_name>.command: thats where all published commands go
+      <database_name>.results: thats where all the replies go
 
-3. put the also supplied eventsd configuration from /usr/share/doc/salt-eventsd/
-   into /etc/salt/. 
+3. have a look at the salt-eventsd config: /etc/salt/events. just notice, that there
+   are different sections:
 
-4. put the backend /usr/share/doc/salt-eventsd/MysqlWorker.py into /etc/salt/eventsd_workers/
+   general
+   events
+      - event_name1
+      - event_name2
+      - etc.
 
-5. restart the daemon with its init-skript and the data should start coming in
+    each settings has comments that try to describe what the setting does.
+
+4. have a look at the backnds in /etc/salt/eventsd_workers/ and adjust
+   their mysql-credentials at the very top
+
+5. (re)start the daemon with its init-skript and the data should start coming in
    once you issue a few commands to your minions. issued commands can be found in the 
    'commands'-table, the results in 'results'.
+
+6. if you dont see any data coming in, see the debug section below and tail the logfile
+   /var/log/salt/eventsd
 
 
 A few words on filtering:
@@ -38,8 +51,8 @@ in the config (others are ignored). The results the minions return, always have 
 as tag. Matching on that to get all the returns is no problem, but its not possible to 
 filter and sort any further just by the tag.
 
-If collecting all results is good enough for you, you're fine. The sample-config already contrains 
-an event-definition that puts all results into the 'results'-table.
+If collecting all results is good enough for you, you're fine. The default config and workers
+alread do that for you.
 
 If you have more filtering- and sorting-needs, you have to define sub-events under the 
 'return'-event. Why under the return-event? Because it already matches on returns. The sub-events
