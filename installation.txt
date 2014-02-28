@@ -35,11 +35,15 @@ installation is simple for the mysql-backend.
     each settings has comments that try to describe what the setting does.
 
 4. have a look at the backnds in /etc/salt/eventsd_workers/ and adjust
-   their mysql-credentials at the very top
+   their mysql-credentials at line 22. do this for all workers!
 
 5. (re)start the daemon with its init-skript and the data should start coming in
    once you issue a few commands to your minions. issued commands can be found in the 
-   'commands'-table, the results in 'results'.
+   'commands'-table, the results in 'results'. dont be confused if you see base64
+   encoded data. salt-eventsd does this with various fields to ensure, that characters
+   within the data to insert to break the mysql-query.
+
+   when extracting data from the database keep the base64-decode in mind.
 
 6. if you dont see any data coming in, see the debug section below and tail the logfile
    /var/log/salt/eventsd
