@@ -1,6 +1,9 @@
 '''
-This is the main SaltEventsDaemon class. It holds all the logic that listens 
-for events, collects events and starts all the workers to dump data.
+this Worker takes care of 'new_job'-event-data generated on 
+salt-masters by using the salt-binary or the mqshell.
+
+it takes care of the fields 'tgt' and 'arg', which might contain
+characters that brake mysql-queries because of '-characters
 '''
 
 import simplejson
@@ -11,11 +14,9 @@ import MySQLdb
 
 log = logging.getLogger(__name__)
 
-class MysqlWorker(object):
+class New_Job_Worker(object):
     '''
-    A MysqlWorker for the salt-eventsd. It starts a mysql connection,
-    pumps all events it receives according to their config in to the
-    desired tables and finally disconnects from the mysql-server
+    takes care of dumping 'new_job'-event-data into the database
     '''
 
     # the settings for the mysql-server to use
@@ -51,7 +52,7 @@ class MysqlWorker(object):
         log.info("dumped {0} events to {1}".format(self.dumped,
                                                    self.hostname))
         self.conn.cls()
-        log.debug("Worker '{0}' shut down".format(self.name))
+        #log.debug("Worker '{0}' shut down".format(self.name))
            
 
     def send(self, 
@@ -62,8 +63,8 @@ class MysqlWorker(object):
         It receives events with their corresponding setting and 
         passes it on to a handler-function
         '''
-        log.debug("received entry:{0} with settings: {1}".format(entry,
-                                                                 event_set))
+        #log.debug("received entry:{0} with settings: {1}".format(entry,
+        #                                                         event_set))
         self._store(entry, event_set)
 
 
@@ -71,7 +72,7 @@ class MysqlWorker(object):
                event,
                event_set):
         '''
-        the actual worker-function which arses the event-configuration,
+        the actual worker-function which parses the event-configuration,
         tries to match it against the event and creates a mysql-query 
         which it finally executes to send the data to mysql
         '''
@@ -104,35 +105,44 @@ class MysqlWorker(object):
             # data is always converted to base64 and listdata always
             # json-dumped. the rest of the data is inserted as is
             for fld in src_flds:
-                if( fld == 'return' ):
+                # the data is generated on salt-masters by using
+                # salt or the mqshell with parameters
+
+                # arg-data is considered unsafe and needs to be
+                # json-dumped and base64 encoded
+                if fld == 'arg':
                     tgt_data.append(b64encode( 
                                         simplejson.dumps(
                                             src_data[fld])
                                         )
                                    )
+                # same goes for the tgt-field
+                elif fld == 'tgt':
+                    if type(src_data[fld]) is list:
+                        tgt_data.append(','.join(src_data[fld]))
+                    else:
+                        tgt_data.append(src_data[fld])
+
+
+                # the rest of the new_job-data can be inserted as is 
+                # because its usually ints, bool, simple strings
                 else:
-                    if( type(src_data[fld] ) is list ):
-                        tgt_data.append(simplejson.dumps( 
-                                            src_data[fld])
-                                       ) 
-                    else: 
-                        tgt_data.append(src_data[fld]) 
+                    tgt_data.append(src_data[fld]) 
 
             log.debug(sql_qry.format(tgt_table, 
                                      *tgt_data))
 
             # execute the sql_qry
             self.cursor.execute( sql_qry.format(tgt_table, 
-                                           *tgt_data) )
+                                                *tgt_data) )
             # commit the changes
             self.conn.comm()
             self.dumped += 1
         except Exception as excerr:
             log.critical("dont know how to handle:'{0}'".format(
                                                             event)
-                                                         )
+                                                         )   
             log.exception(excerr)
-
 
 class MysqlConn(object):
     ''' 
@@ -162,7 +172,7 @@ class MysqlConn(object):
         except MySQLdb.MySQLError as sqlerr:
             log.error("Conneting to the mysql-server failed:")
             log.error(sqlerr)
-        log.debug("initialized connection {0}".format(self))
+        #log.debug("initialized connection {0}".format(self))
 
     def get_cursor(self):
         ''' 
@@ -177,7 +187,7 @@ class MysqlConn(object):
         ''' 
         explicitly close a connection tomysql
         '''
-        log.debug("closing connection {0}".format(self))
+        #log.debug("closing connection {0}".format(self))
 
         if(self.mysql_con):
             self.mysql_con.close()

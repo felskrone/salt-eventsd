@@ -1,6 +1,8 @@
 # salt-eventsd
 
-THIS IS STILL IN DEVELOPMENT AND IN ITS EARLY STAGES. NOT READY FOR PRODUCTION YET!
+THIS IS STILL IN DEVELOPMENT BUT HAS BEEN STABLE FOR MONTH.
+
+BUT STILL: USE IT AT YOUR OWN RISK!
 
 A event-listener daemon for saltstack that writes data into mysql, postgres, statistical data into graphite, mongo,
 etc. Basically all issued commands and their returns can be handled and put into anything you like :-)

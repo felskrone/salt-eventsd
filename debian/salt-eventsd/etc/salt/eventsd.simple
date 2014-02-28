@@ -49,9 +49,9 @@ events:
     # name of the event, can be anything, its not used anywhere but in here
     new_job: 
         # the backend to use for this type of event. the fields 'backend' and
-	# 'tag' are the only two relevant fields to the daemon for matching an
-	# event to a backend. the event itself and the rest of the fields are 
-	# passed on to the backend and have to be handled in there.
+        # 'tag' are the only two relevant fields to the daemon for matching an
+        # event to a backend. the event itself and the rest of the fields are 
+        # passed on to the backend and have to be handled in there.
         backend: MysqlWorker
         # the tag of the event to we want to match
         # regexes are also supported as long as python supports them
@@ -64,7 +64,7 @@ events:
         dict_name: data
         # the fields from the dict above we want to use
         fields: [jid, user, fun, arg, tgt, tgt_type]
-	# enable debugging for the backend
+        # enable debugging for the backend
         debug: false
 
     # This event matches on ALL results returned from a minion due to the tag being
@@ -80,16 +80,16 @@ events:
         tag: "\\d{20}"
         # the backend where to send events that match this tag
         backend: MysqlWorker
-	# the mysql-table the data should be written to (mysql-credentials are currently
-	# defined in the backend itself) but can also be defined here.
+        # the mysql-table the data should be written to (mysql-credentials are currently
+        # defined in the backend itself) but can also be defined here.
         mysql_tab: results
-	# the mysql-query-template to format and execute
+        # the mysql-query-template to format and execute
         template: insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');
-	# the dictionary-name WITHIN the returned event-dictionary 
-	# that holds the data we're interested in.
+        # the dictionary-name WITHIN the returned event-dictionary 
+        # that holds the data we're interested in.
         dict_name: data
         # the fields from the dict_name-dictionary we want in the query. always make sure, 
-	# that the order in the template above and the fields defined here match in count
+        # that the order in the template above and the fields defined here match in count
         fields: [jid, id, retcode, return, success]
-	# enable debugging for this event
+        # enable debugging for this event
         debug: false

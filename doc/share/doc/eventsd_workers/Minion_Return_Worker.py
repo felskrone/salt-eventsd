@@ -1,6 +1,7 @@
 '''
-This is the main SaltEventsDaemon class. It holds all the logic that listens 
-for events, collects events and starts all the workers to dump data.
+this Worker takes care of return-data being returned by a minion.
+it takes care of dumping the 'return'-field into the database 
+after its json-encoded and base64 converted.
 '''
 
 import simplejson
@@ -11,11 +12,9 @@ import MySQLdb
 
 log = logging.getLogger(__name__)
 
-class HomeWorker(object):
+class Minion_Return_Worker(object):
     '''
-    A MysqlWorker for the salt-eventsd. It starts a mysql connection,
-    pumps all events it receives according to their config in to the
-    desired tables and finally disconnects from the mysql-server
+    takes care of dumping 'return'-data into the database
     '''
 
     # the settings for the mysql-server to use
@@ -24,19 +23,17 @@ class HomeWorker(object):
     database = "saltresults"
     hostname = "localhost"
 
-    name = "HomeWorker"
+    name = "MysqlWorker"
 
     def setup(self):
         '''
         init the connection and do other necessary stuff
         '''
         # create the mysql connection and get the cursor
-
         self.conn = MysqlConn(self.hostname,
-                              self.username,
-                              self.password,
-                              self.database)
-
+                         self.username,
+                         self.password,
+                         self.database)
         self.cursor = self.conn.get_cursor()
 
         # keep track of the events dumped
@@ -53,7 +50,7 @@ class HomeWorker(object):
         log.info("dumped {0} events to {1}".format(self.dumped,
                                                    self.hostname))
         self.conn.cls()
-        log.debug("Worker '{0}' shut down".format(self.name))
+        #log.debug("Worker '{0}' shut down".format(self.name))
            
 
     def send(self, 
@@ -64,20 +61,16 @@ class HomeWorker(object):
         It receives events with their corresponding setting and 
         passes it on to a handler-function
         '''
-        log.debug("received entry:{0} with settings: {1}".format(entry,
-                                                                 event_set))
-        if self.cursor:
-            self._store(entry, event_set)
-        else:
-            log.error("No connection available, event ignored!")
-            return
+        #log.debug("received entry:{0} with settings: {1}".format(entry,
+        #                                                         event_set))
+        self._store(entry, event_set)
 
 
     def _store(self,
                event,
                event_set):
         '''
-        the actual worker-function which arses the event-configuration,
+        the actual worker-function which parses the event-configuration,
         tries to match it against the event and creates a mysql-query 
         which it finally executes to send the data to mysql
         '''
@@ -110,35 +103,33 @@ class HomeWorker(object):
             # data is always converted to base64 and listdata always
             # json-dumped. the rest of the data is inserted as is
             for fld in src_flds:
-                if( fld == 'return' ):
+                # the 'return'-field is ALWAYS json-dumped and base64-
+                # converted. its data is returned from a minion and can 
+                # never ever be "trusted"
+                if fld == 'return':
                     tgt_data.append(b64encode( 
                                         simplejson.dumps(
                                             src_data[fld])
                                         )
                                    )
+                # all other fields should be safe to insert
                 else:
-                    if( type(src_data[fld] ) is list ):
-                        tgt_data.append(simplejson.dumps( 
-                                            src_data[fld])
-                                       ) 
-                    else: 
-                        tgt_data.append(src_data[fld]) 
+                    tgt_data.append(src_data[fld]) 
 
             log.debug(sql_qry.format(tgt_table, 
                                      *tgt_data))
 
             # execute the sql_qry
             self.cursor.execute( sql_qry.format(tgt_table, 
-                                           *tgt_data) )
+                                                *tgt_data) )
             # commit the changes
             self.conn.comm()
             self.dumped += 1
         except Exception as excerr:
             log.critical("dont know how to handle:'{0}'".format(
                                                             event)
-                                                         )
+                                                         )   
             log.exception(excerr)
-
 
 class MysqlConn(object):
     ''' 
@@ -165,31 +156,30 @@ class MysqlConn(object):
                                              passwd = self.password,
                                              db = self.database)
             self.cursor = self.mysql_con.cursor()
-
         except MySQLdb.MySQLError as sqlerr:
-            self.mysql_con = False
             log.error("Conneting to the mysql-server failed:")
             log.error(sqlerr)
-        else:
-            log.debug("initialized connection {0}".format(self))
+        #log.debug("initialized connection {0}".format(self))
 
     def get_cursor(self):
         ''' 
         returns the current mysql-cursor for this connection
         '''
-        if( self.cursor ):
+        if(self.cursor):
             return self.cursor
         else:
-            return None
+            raise AttributeError("Trying to get cursor of uninitialized connection")
 
     def cls(self):
         ''' 
         explicitly close a connection tomysql
         '''
-        log.debug("closing connection {0}".format(self))
+        #log.debug("closing connection {0}".format(self))
 
-        if( self.mysql_con ):
+        if(self.mysql_con):
             self.mysql_con.close()
+        else:
+            raise AttributeError("Trying close uninitialized connection")
 
     def comm(self):
         ''' 

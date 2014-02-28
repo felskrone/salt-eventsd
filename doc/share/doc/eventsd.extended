@@ -16,7 +16,7 @@ general:
     max_workers: 100
     # how many events to collect before starting a worker 
     # that dumps the collected events into the database
-    event_limit: 2
+    event_limit: 1
     # where the daemon should put its pidfile
     pidfile: /var/run/salt-eventsd.pid
     # where the daemon should put its state_file
@@ -34,7 +34,7 @@ general:
     dump_timer: 60
     # the backends to load on daemon-start, see the documentation in 
     # /usr/share/doc/salt-eventsd/backends.txt on how to write your own
-    backends: [MysqlWorker, GraphiteWorker]
+    backends: [Minion_Return_Worker, Minion_Event_Worker, New_Job_Worker]
     # where to find the active backends 
     backend_dir: /etc/salt/eventsd_workers
        
@@ -47,10 +47,10 @@ events:
     # name of the event, can be anything, its not used anywhere but in here
     new_job: 
         # the backend to use for this type of event. the fields 'backend' and
-	# 'tag' are the only two relevant fields to the daemon for matching an
-	# event to a backend. the event itself and the rest of the fields are 
-	# passed on to the backend and have to be handled in there.
-        backend: MysqlWorker
+       # 'tag' are the only two relevant fields to the daemon for matching an
+       # event to a backend. the event itself and the rest of the fields are 
+       # passed on to the backend and have to be handled in there.
+        backend: New_Job_Worker
         # the tag of the event to we want to match
         # regexes are also supported as long as python supports them
         tag: new_job
@@ -62,16 +62,16 @@ events:
         dict_name: data
         # the fields from the dict above we want to use
         fields: [jid, user, fun, arg, tgt, tgt_type]
-	# enable debugging for the backend
+       # enable debugging for the backend
         debug: false
 
     return: 
         # This event matches on ALL results returned from a minion due to the tag being
-	# defined as a 20-digit-number (ALL returns have the jid as tag). By default all 
-	# results will be put in the table defined by the 'mysql_tag' fields (defaults to
-	# 'results'). 
+        # defined as a 20-digit-number (ALL returns have the jid as tag). By default all 
+        # results will be put in the table defined by the 'mysql_tag' fields (defaults to
+        # 'results'). 
 
-	
+       
         # This is a special event. It matches on all returns which have a jid as tag.
         # It will put ALL returns into the table 'results' without looking at the return
         # itself.
@@ -79,64 +79,70 @@ events:
         # but has to be escaped and quoted to work.
         tag: "\\d{20}"
         # the backend where to send events that match this tag
-        backend: MysqlWorker
-	# the mysql-table the data should be written to (mysql-credentials are currently
-	# defined in the backend itself) but can also be defined here.
+        backend: Minion_Return_Worker
+        # the mysql-table the data should be written to (mysql-credentials are currently
+        # defined in the backend itself) but can also be defined here.
         mysql_tab: results
-	# the mysql-query-template to format and execute
+        # the mysql-query-template to format and execute
         template: insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');
-	# the dictionary-name WITHIN the returned event-dictionary 
-	# that holds the data we're interested in.
+        # the dictionary-name WITHIN the returned event-dictionary 
+        # that holds the data we're interested in.
         dict_name: data
         # the fields from the dict_name-dictionary we want in the query. always make sure, 
-	# that the order in the template above and the fields defined here match in count
+        # that the order in the template above and the fields defined here match in count
         fields: [jid, id, retcode, return, success]
-	# enable debugging for this event
+        # enable debugging for this event
         debug: false
 
         # The above settings for the 'return'-event already matches on all returns that occur on the event 
-	# bus and puts the returns into the database. If thats all you need, you dont need to change anything.
-	# Of course you can alter the return-event above to any other backend with the settings of your choice.
-	
-	# If you need more fine-grained control read on:
-	# Its not always desireable, to have ALL returns in the same mysql-table. With sub-events you can first
-	# match on an return-event and then inspect that event further to have it forwarded to a backend of 
-	# your choicse.
+       # bus and puts the returns into the database. If thats all you need, you dont need to change anything.
+       # Of course you can alter the return-event above to any other backend with the settings of your choice.
+       
+       # If you need more fine-grained control read on:
+       # Its not always desireable, to have ALL returns in the same mysql-table. With sub-events you can first
+       # match on an return-event and then inspect that event further to have it forwarded to a backend of 
+       # your choicse.
         # For sub-events the daemon first matches on the 20-digit-tag and then looks into the 'fun'-field to
-	# decide, which backend the event should be forwarded to. The sub-event completely overrides the 
-	# settings for the 'return'-event above.
+       # decide, which backend the event should be forwarded to. The sub-event completely overrides the 
+       # settings for the 'return'-event above.
 
-        # define sub-events for the return-event
-        subs:
-	    # name can be anything that describes it tell
-            test.sleep:
-	        # the function-name we want to match on
-                fun: test.sleep
-		# the backend for return of the test.sleep function
-                backend: GraphiteWorker
-		# the name of the dictionary in the reply that contains the data we want
-                dict_name: data
-                # the name of the key in the reply-dict. currently the graphite backend
-		# only supports a single field being the jid
-                fields: [jid]
-		# all fields below are specific to the graphite worker. you can
-		# have as many fields as you like, they are not modified in any 
-		# way by the daemon.
-                metric: sys.info.fusel
 
-	    # name of the sub-event
-            raid_check:
-	        # the function name, test.ping. saltutil.sync_modules, cmd.run_all, etc.
-                fun: myutils.check_raid
-		# the backend to forward a matching event to
-                backend: HomeWorker
-                dict_name: data
-                fields: [jid, id, retcode, return]
-		# fields specific to the HomeWorker-backend. in this case its a mysql-backend
-                template: insert into {0} (jid, servername, ret_code, result) values ('{1}', '{2}', '{3}', '{4}') on duplicate key update jid='{1}', ret_code='{3}', result='{4}';
-                mysql_tab: results_raid
- 
- 
-        
-    
+#        # define sub-events for the return-event
+#        subs:
+#           # name of the sub-event
+#            raid_check:
+#               # the function name, test.ping. saltutil.sync_modules, cmd.run_all, etc.
+#                fun: wputil.check_raid
+#              # the backend to forward a matching event to
+#                backend: HomeWorker
+#                dict_name: data
+#                fields: [jid, id, retcode, return]
+#              # fields specific to the HomeWorker-backend. in this case its a mysql-backend
+#                template: insert into {0} (jid, servername, ret_code, result) values ('{1}', '{2}', '{3}', '{4}') on duplicate key update jid='{1}', ret_code='{3}', result='{4}';
+#                mysql_tab: results_raid
+#   
+#    # here we are listening for en event with a tag, no jid is assigned 
+#    # because the data is created on a minion and send to the master.
+    raid_state:
+        tag: "raid_state"
+        backend: Minion_Event_Worker
+        dict_name: data
+        fields: [id, data]
+        template: insert into {0} (servername, result) values ('{1}', '{2}') on duplicate key update result='{2}', rec_date=now();
+        mysql_tab: results_raid
 
+    report_pkgs:
+        tag: "report_pkgs"
+        backend: Minion_Event_Worker
+        dict_name: data
+        fields: [id, data]
+        template: insert into {0} (servername, pkg_list) values ('{1}', '{2}') on duplicate key update pkg_list='{2}', datum=now();
+        mysql_tab: results_pkg
+
+    exim_state:
+        tag: "state_exim"
+        backend: Minion_Event_Worker
+        dict_name: data
+        fields: [id, data]
+        template: insert into {0} (servername, data) values ('{1}', '{2}') on duplicate key update data='{2}', datum=now();
+        mysql_tab: results_exim

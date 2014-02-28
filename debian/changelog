@@ -1,3 +1,28 @@
+salt-eventsd (0.5+7) stable; urgency=low
+
+  * updated events.extended config
+  * renamed workers and split them into different files
+
+ -- Volker Schwicking <vs@hosteurope.de>  Fri, 28 Feb 2014 13:22:23 +0100
+
+salt-eventsd (0.5+6) stable; urgency=low
+
+  * fixed salt-events.postinst
+
+ -- Volker Schwicking <vs@hosteurope.de>  Thu, 30 Jan 2014 13:47:21 +0100
+
+salt-eventsd (0.5+5) stable; urgency=low
+
+  * fixed mantis: 0000822, added system-v symlinks
+
+ -- Volker Schwicking <vs@hosteurope.de>  Thu, 30 Jan 2014 13:42:33 +0100
+
+salt-eventsd (0.5+4) stable; urgency=low
+
+  * fixed mantis: 0000797
+
+ -- Volker Schwicking <vs@hosteurope.de>  Thu, 30 Jan 2014 13:36:44 +0100
+
 salt-eventsd (0.5+3) stable; urgency=low
 
   * fixed mantis: 0000797

@@ -10,7 +10,7 @@ import salt.log
 import os
 import yaml
 
-logger = salt.log.logging.getLogger(__name__)
+logger = salt.log.setup.logging.getLogger(__name__)
 log = logging.getLogger(__name__)
 
 
