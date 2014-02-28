@@ -89,6 +89,17 @@ class Minion_Return_Worker(object):
             # the mysql-table toinsert into
             tgt_table = event_set['mysql_tab']
 
+            # there is one event we want to ignore. it just contains
+            # 'tag': '20140228142919397750', 
+            # 'data':{ 
+            #          '_stamp': '2014-02-28_14:29:19.398033', 
+            #          'minions': ['wp033.webpack.hosteurope.de']
+            #        }
+            # its used by salt internally so we skip it. we never get a return 
+            # that has 'minions' in it unless we put it in there ourselves
+            if 'minions' in src_data:
+                return
+
             # the data to format the query with. it is IMPORTANT
             # that the ORDER AND COUNT of the variables is preserved
             # here. the fields-list and the template from the config
