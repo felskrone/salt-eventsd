@@ -20,12 +20,13 @@ class New_Job_Worker(object):
     '''
 
     # the settings for the mysql-server to use
-    username = "collector"
-    password = "Ahpoohah3shupaiz1ooj"
-    database = "saltresults"
+    # it should be a readonly user
+    username = "_username_here_"
+    password = "_password_here_"
+    database = "_database_here_"
     hostname = "localhost"
 
-    name = "MysqlWorker"
+    name = "New_Job_Worker"
 
     def setup(self):
         '''

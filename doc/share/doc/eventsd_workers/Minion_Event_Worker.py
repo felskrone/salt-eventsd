@@ -18,10 +18,10 @@ class Minion_Event_Worker(object):
     '''
 
     # the settings for the mysql-server to use
-    # its a read-only with access to saltresults.*
-    username = "collector"
-    password = "Ahpoohah3shupaiz1ooj"
-    database = "saltresults"
+    # it should be a read-only user, it just collects data
+    username = "_username_here_"
+    password = "_password_here_"
+    database = "_database_here_"
     hostname = "localhost"
 
     name = "Minion_Event_Worker"
