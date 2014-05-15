@@ -35,3 +35,6 @@ then
 else
     echo "failed to create start-up links, please create them yourself"
 fi
+echo "INFO: NOT STARTING THE DAEMON. CONFIGURE IT FIRST in /etc/salt/eventsd"
+echo -e "INFO: \nsee /etc/salt/eventsd for configuration and \n/usr/share/doc/salt-eventsd/eventsd_workers for \n example workers"
+echo 
