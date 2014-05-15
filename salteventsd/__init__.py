@@ -189,8 +189,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         '''
         # log on to saltstacks event-bus
         event = salt.utils.event.SaltEvent(self.node,
-                                           self.sock_dir,
-                                           id = self.nodeid )
+                                           self.sock_dir)
 
         # we store our events in a list, we dont really care about an order
         # or what kind of data is put in there. all that is configured with the
