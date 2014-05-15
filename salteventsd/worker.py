@@ -34,7 +34,7 @@ class SaltEventsdWorker(threading.Thread):
         start method of the worker that runs
         in its own thread
         '''
-        log.info("{0} started".format(threading.currentThread().getName()))
+        log.info("{0}# started".format(threading.currentThread().getName()))
         self._store_data()
 
     def _init_backend(self, backend):
@@ -42,7 +42,7 @@ class SaltEventsdWorker(threading.Thread):
         creates a new backend-worker
         '''
         setup_backend = copy.deepcopy( self.backends[backend] )
-        setup_backend.setup()
+        setup_backend.setup(self.name)
         self.active_backends[backend] = setup_backend
 
     def _cleanup(self):
@@ -94,7 +94,8 @@ class SaltEventsdWorker(threading.Thread):
                                     event_set = self.event_map[event]['subs'][subevent]
 
                     if not event_set:
-                        log.error("event '{0}' not found in config".format(entry))
+                        log.error("{0}# event '{1}' not found in config".format(self.name,
+                                                                                entry))
 
                     else:
                         # if the matched event_set still has (not matching) 
@@ -103,9 +104,11 @@ class SaltEventsdWorker(threading.Thread):
 #                            del event_set['subs']
 
                         log.debug("")
-                        log.debug("event match details:")
-                        log.debug("event_set: {0}".format(event_set))
-                        log.debug("event: {0}".format(entry))
+                        log.debug("{0}# event match details:".format(self.name))
+                        log.debug("{0}# event_set: {1}".format(self.name,
+                                                               event_set))
+                        log.debug("{0}# event: {1}".format(self.name,
+                                                           entry))
                         log.debug("")
 
                         # if the backend for this type of event has not 
