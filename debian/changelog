@@ -1,3 +1,23 @@
+salt-eventsd (0.5+10) stable; urgency=low
+
+  * removed installation of workers, users should add them theirselfs
+    only simple example is put into /etc/salt/eventsd
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Thu, 15 May 2014 14:53:26 +0200
+
+salt-eventsd (0.5+9) stable; urgency=low
+
+  * removed node-id, not required for listening to events anymore
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Tue, 13 May 2014 12:24:46 +0200
+
+salt-eventsd (0.5+8) stable; urgency=low
+
+  * removed credentials from workers
+  * updated installation.txt
+
+ -- Volker Schwicking <vs@hosteurope.de>  Fri, 28 Feb 2014 14:20:11 +0100
+
 salt-eventsd (0.5+7) stable; urgency=low
 
   * updated events.extended config
