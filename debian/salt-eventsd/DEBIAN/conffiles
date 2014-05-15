@@ -1,2 +1,2 @@
-/etc/salt/eventsd.simple
+/etc/salt/eventsd.example/eventsd.simple
 /etc/init.d/salt-eventsd
