@@ -18,7 +18,8 @@ class Minion_Event_Worker(object):
     '''
 
     # the settings for the mysql-server to use
-    # it should be a read-only user, it just collects data
+    # it should be a insert-only user, it just collects data.
+    # of course this is up to you, but its a safer choice
     username = "_username_here_"
     password = "_password_here_"
     database = "_database_here_"
