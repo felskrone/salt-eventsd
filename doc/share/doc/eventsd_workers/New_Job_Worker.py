@@ -19,8 +19,8 @@ class New_Job_Worker(object):
     takes care of dumping 'new_job'-event-data into the database
     '''
 
-    # the settings for the mysql-server to use
-    # it should be a readonly user
+    # the settings for the mysql-server to use it should
+    # be a read-only user for safety reasons
     username = "_username_here_"
     password = "_password_here_"
     database = "_database_here_"
