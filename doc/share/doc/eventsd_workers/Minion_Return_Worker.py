@@ -17,8 +17,8 @@ class Minion_Return_Worker(object):
     takes care of dumping 'return'-data into the database
     '''
 
-    # the settings for the mysql-server to use
-    # it should be a readonly user
+    # the settings for the mysql-server to use it should
+    # be a write-only user for security reasons
     username = "_username_here_"
     password = "_password_here_"
     database = "_database_here_"
