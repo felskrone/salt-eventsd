@@ -11,6 +11,7 @@ import threading
 from base64 import b64encode
 import logging
 import MySQLdb
+from socket import gethostname
 
 log = logging.getLogger(__name__)
 
@@ -19,30 +20,46 @@ class New_Job_Worker(object):
     takes care of dumping 'new_job'-event-data into the database
     '''
 
-    # the settings for the mysql-server to use it should
-    # be a read-only user for safety reasons
-    username = "_username_here_"
-    password = "_password_here_"
-    database = "_database_here_"
-    hostname = "localhost"
+    # the settings for the mysql-server to use
+    # it should be a readonly user
+    creds = {}
+
+    api_host = gethostname()
 
     name = "New_Job_Worker"
+    thread_id = None
 
-    def setup(self):
+    def setup(self,
+              thread_id,
+              **kwargs):
         '''
         init the connection and do other necessary stuff
         '''
+        self.thread_id = thread_id
+
+        # get the credentials from the main config in kwargs
+        if 'worker_credentials' in kwargs:
+            if self.name in kwargs['worker_credentials']:
+                self.creds.update(kwargs['worker_credentials'][self.name])
+            elif 'all' in kwargs['worker_credentials']:
+                self.creds.update(kwargs['worker_credentials']['all'])
+            else:
+                log.info('{0}# no credentials loaded from config'.format(self.thread_id))
+
         # create the mysql connection and get the cursor
-        self.conn = MysqlConn(self.hostname,
-                         self.username,
-                         self.password,
-                         self.database)
+        self.conn = MysqlConn(self.creds['hostname'],
+                              self.creds['username'],
+                              self.creds['password'],
+                              self.creds['database'],
+                              self.thread_id)
+
         self.cursor = self.conn.get_cursor()
 
         # keep track of the events dumped
         self.dumped = 0
 
-        log.info("Worker '{0}' initiated".format(self.name))
+        log.info("{0}# Worker '{1}' initiated".format(self.thread_id,
+                                                      self.name))
 
     
     def shutdown(self):
@@ -50,8 +67,9 @@ class New_Job_Worker(object):
         close the connection to the mysql-server and maybe
         do some other cleanup if necessary
         '''
-        log.info("dumped {0} events to {1}".format(self.dumped,
-                                                   self.hostname))
+        log.info("{0}# dumped {1} events to {2}".format(self.name,
+                                                        self.dumped,
+                                                        self.hostname))
         self.conn.cls()
         #log.debug("Worker '{0}' shut down".format(self.name))
            
@@ -89,10 +107,13 @@ class New_Job_Worker(object):
             src_data = event[src_dict]
    
             # there one event we want to ignore. it just contains
-            # 'tag': '20140228142919397750', 'data': {'_stamp': '2014-02-28_14:29:19.398033', 'minions': ['wp033.webpack.hosteurope.de']}
+            # {'tag': 'new_job', 'data': {'tgt_type': 'glob', 'jid': '20140515142954787191', 'tgt': 'wp001.webpack.hosteurope.de', '_stamp': '2014-05-15T14:29:54.787681', 'user': 'root', 'arg': [], 'fun': 'test.ping', 'minions': ['wp001.webpack.hosteurope.de']}}
+
+           
+            # DEPRECATED SINCE SALT 2014.01 
             # its used by salt internally so we skip it
-            if 'minions' in src_data:
-                return
+            # if 'minions' in src_data:
+            #     return
 
             # the mysql-table to insert into
             tgt_table = event_set['mysql_tab']
@@ -136,7 +157,10 @@ class New_Job_Worker(object):
                 else:
                     tgt_data.append(src_data[fld]) 
 
-            log.debug(sql_qry.format(tgt_table, 
+            # append the current api-host we'running on
+            tgt_data.append(self.api_host)
+            log.debug(self.thread_id + "# " + \
+                      sql_qry.format(tgt_table, 
                                      *tgt_data))
 
             # execute the sql_qry
@@ -146,9 +170,9 @@ class New_Job_Worker(object):
             self.conn.comm()
             self.dumped += 1
         except Exception as excerr:
-            log.critical("dont know how to handle:'{0}'".format(
-                                                            event)
-                                                         )   
+            log.critical("{0}# dont know how to handle:'{1}'".format(self.thread_id,
+                                                                     event)
+                                                              )   
             log.exception(excerr)
 
 class MysqlConn(object):
@@ -160,7 +184,8 @@ class MysqlConn(object):
                  hostname,
                  username,
                  password,
-                 database):
+                 database,
+                 thread_id):
         ''' 
         creates a mysql connecton on invocation
         '''
@@ -169,6 +194,7 @@ class MysqlConn(object):
         self.database = database
         self.hostname = hostname
         self.cursor = None
+        self.thread_id = thread_id
 
         try:
             self.mysql_con = MySQLdb.connect(host = self.hostname,
@@ -177,7 +203,7 @@ class MysqlConn(object):
                                              db = self.database)
             self.cursor = self.mysql_con.cursor()
         except MySQLdb.MySQLError as sqlerr:
-            log.error("Conneting to the mysql-server failed:")
+            log.error("{0}# Connecting to the mysql-server failed:".format(self.thread_id))
             log.error(sqlerr)
         #log.debug("initialized connection {0}".format(self))
 
