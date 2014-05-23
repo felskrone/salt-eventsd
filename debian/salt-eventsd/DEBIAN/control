@@ -1,8 +1,8 @@
 Package: salt-eventsd
-Version: 0.5+9
+Version: 0.5+11
 Architecture: all
 Maintainer: Volker Schwicking <vs@hosteurope.de>
-Installed-Size: 204
+Installed-Size: 212
 Depends: python, python-support (>= 0.90.0), salt-master
 Section: devel
 Priority: optional

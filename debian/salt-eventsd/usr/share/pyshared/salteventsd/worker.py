@@ -1,6 +1,7 @@
 '''
-This is the main SaltEventsDaemon class. It holds all the logic that listens 
-for events, collects events and starts all the workers to dump data.
+This is the main SaltEventsdWorker class. It receives collected events,
+initiates a new backend thread, passes it the given events and makes sure,
+that the created thread is cleanly joined onces its done.
 '''
 
 import threading
@@ -18,7 +19,8 @@ class SaltEventsdWorker(threading.Thread):
                  qdata,
                  name,
                  event_map,
-                 backends):
+                 backends,
+                 **kwargs):
 
         threading.Thread.__init__(self)
         self.setName(name)
@@ -26,6 +28,7 @@ class SaltEventsdWorker(threading.Thread):
         self.events = qdata
         self.event_map = event_map
         self.backends = backends
+        self.kwargs = kwargs
 
         self.active_backends = {}
 
@@ -42,7 +45,7 @@ class SaltEventsdWorker(threading.Thread):
         creates a new backend-worker
         '''
         setup_backend = copy.deepcopy( self.backends[backend] )
-        setup_backend.setup(self.name)
+        setup_backend.setup(self.name, **self.kwargs)
         self.active_backends[backend] = setup_backend
 
     def _cleanup(self):
@@ -66,6 +69,7 @@ class SaltEventsdWorker(threading.Thread):
 	# it.
         for entry in self.events:
             for event in self.event_map.keys():
+                event_sets = []
 
                 event_set = None
 
@@ -73,7 +77,7 @@ class SaltEventsdWorker(threading.Thread):
                 if( self.event_map[event]['tag'].match( entry['tag'] ) ):
 
                     # if we have match, use that settings for this event
-                    event_set = self.event_map[event]
+                    event_sets.append(self.event_map[event])
 
                     # if the event has a subs-section, check the sub-events if 
 		    # they match. if so, use these settings for this event. 
@@ -87,38 +91,34 @@ class SaltEventsdWorker(threading.Thread):
 			    # we might have to create prior to adding an event
                             if( self.event_map[event]['subs'][subevent].has_key('fun') ):
                                 if( self.event_map[event]['subs'][subevent]['fun'].match( entry['data']['fun'] ) ):
-                                    event_set = self.event_map[event]['subs'][subevent]
+                                    event_sets.append(self.event_map[event]['subs'][subevent])
 
                             elif( self.event_map[event]['subs'][subevent].has_key('tag') ):
                                 if( self.event_map[event]['subs'][subevent]['tag'].match( entry['data']['fun'] ) ):
-                                    event_set = self.event_map[event]['subs'][subevent]
+                                    event_sets.append(self.event_map[event]['subs'][subevent])
 
-                    if not event_set:
+                    if len(event_sets) == 0:
                         log.error("{0}# event '{1}' not found in config".format(self.name,
                                                                                 entry))
 
                     else:
-                        # if the matched event_set still has (not matching) 
-			# 'subs', remove them
-#                        if( event_set.has_key('subs') ):
-#                            del event_set['subs']
-
-                        log.debug("")
-                        log.debug("{0}# event match details:".format(self.name))
-                        log.debug("{0}# event_set: {1}".format(self.name,
-                                                               event_set))
-                        log.debug("{0}# event: {1}".format(self.name,
-                                                           entry))
-                        log.debug("")
+#                        log.debug("{0}# event match details:".format(self.name))
+#                        log.debug("{0}# event_set: {1}".format(self.name,
+#                                                               event_set))
+#                        log.debug("{0}# event: {1}".format(self.name,
+#                                                           entry))
 
                         # if the backend for this type of event has not 
                         # been initiated yet, take care of that
-                        if not ( event_set['backend'] in self.active_backends.keys() ):
-                            self._init_backend(event_set['backend'])
+                        for event_set in event_sets:
+                            if not ( event_set['backend'] in self.active_backends.keys() ):
+                                self._init_backend(event_set['backend'])
 
                         # finally send that event to the backend including
 			# the config-set for this event
-                        self.active_backends[ event_set['backend'] ].send(entry, event_set)
+                        for event_set in event_sets:
+                            self.active_backends[ event_set['backend'] ].send(entry, event_set)
+                event_sets = []
 
         # have all backends clean up their cleanup
         self._cleanup()

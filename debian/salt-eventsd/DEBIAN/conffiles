@@ -1,2 +1,3 @@
-/etc/salt/eventsd.example/eventsd.simple
+/etc/salt/eventsd_workers/README
+/etc/salt/eventsd
 /etc/init.d/salt-eventsd

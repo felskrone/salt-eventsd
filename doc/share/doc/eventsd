@@ -92,7 +92,7 @@ events:
     return: 
         # This event matches on ALL results returned from a minion 
         # By default all results will be put in the table defined by 
-	# the 'mysql_tag' fields (defaults to # 'results'). 
+        # the 'mysql_tag' fields (defaults to # 'results'). 
        
         # The tag is defined as regex. Any regex python supports is supported
         # but has to be escaped (if necessary) and quoted to work.

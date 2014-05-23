@@ -26,7 +26,7 @@ set -e
 #	/usr/sbin/update-python-modules -f
 #    ;;
 #esac
-
+update-python-modules -a -f -v
 update-rc.d salt-eventsd defaults
 
 if [ $? -eq 0 ]
