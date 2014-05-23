@@ -1,7 +1,5 @@
-# salt-eventsd
-
-NOTE: This is still in development but has been stable for month. I have not changed a line
-of code besides configuration and its working flawlessly. But you still use it AT YOUR OWN RISK!
+# salt-eventsd 
+(a project based on but not related to saltstack)
 
 A event-listener daemon for saltstack that writes data into mysql, postgres, statistical data into graphite, mongo,
 etc. Basically all issued commands and their returns can be handled and put into anything you like :-)
@@ -13,7 +11,7 @@ workers then extract the desired data-fields from the return and process them fu
 
 ### Usage Examples
 - collect all events with tag 'new_job' to have a job-history that lasts longer than saltstacks job-cache
-- collect all job returns by matching on jids returned from minions to have a database with all returns you can index, search, etc.
+- collect all job returns by matching on job-return-tagged event returned from minions to have a database with all returns you can index, search, etc.
 - filter events into different backends like graphite, mongodb, mysql, postgres, whatever...
 - collect historic data like load average etc. by collecting events with tag 'load' which are created by your own load-monitoring module
 - create and collect your own custom backends that process you event-data
@@ -21,7 +19,7 @@ workers then extract the desired data-fields from the return and process them fu
 
 ### Why this is useful / Who needs this?
 Currently saltstack does not have an external job-cache that works without a returner. Using returners and by that losing salt encryption
-is not always desirable or maybe not even an option. With this daemon, you can collect all data right where its created and returned: on the salt-master.
+is not always desirable or maybe not even be an option. With this daemon, you can collect all data right where its created and returned: on the salt-master.
 
 While saltstacks job-cache works well in smaller environments, in larger environments the job-cache can become a burden for the salt-master. Especially
 if the job-cache should be kept for a longer period of time, and im talking weeks and month here. This is where the salt-eventsd jumps in. With the
@@ -37,6 +35,7 @@ More info will follow soon :-)
 - collect events from the salt-event-bus into a different backends
 - write your own backends with ease (some python knowledge required)
 - use regular expressions for matching on events, very flexible and powerful
+- have events send to two backend for having a command+return history as well as having the data pushed elsewhere
 - create your own sql-query-templates for inserting data into the database 
 - fully saltstack-job-cache independant database to hold all data you want in it
 - etc.
