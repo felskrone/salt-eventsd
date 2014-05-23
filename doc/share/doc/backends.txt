@@ -1,1 +1,5 @@
-documentation on how to do that will follow :-)
+checkout eventsd_workers/ for example on how two write workers. after importing the 
+sql-scheme into a database and setting the right credentials in the config, you should 
+have command+return logging i no time.
+
+if you need more fine grained control, see the eventsd.extended config on how to use sub-events.
