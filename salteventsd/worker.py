@@ -29,7 +29,6 @@ class SaltEventsdWorker(threading.Thread):
         self.event_map = event_map
         self.backends = backends
         self.kwargs = kwargs
-        log.debug(self.kwargs)
 
         self.active_backends = {}
 
