@@ -79,7 +79,6 @@ events:
         # the mysql-table the command should be inserted into
         mysql_tab: cmd_hist
         # the sql-query to perform with the events data
-        # the field servername is missing in the 'fields' below, its added on the fly by the worker
         template: insert into {0} (jid, user, fun, arg, tgt, tgt_type) values ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}');
         # the dictionary-name in the event that holds the data we're interested in
         dict_name: data
