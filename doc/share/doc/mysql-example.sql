@@ -36,13 +36,13 @@ CREATE TABLE `command` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `results`
+-- Table structure for table `returns'
 --
 
-DROP TABLE IF EXISTS `results`;
+DROP TABLE IF EXISTS `returns`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `results` (
+CREATE TABLE `returns` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `jid` varchar(20) NOT NULL DEFAULT '00000000000000000000',
   `rec_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
