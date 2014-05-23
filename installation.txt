@@ -1,7 +1,7 @@
 #### salt-eventsd installation ####
 ###################################
 
-last update: Feb 28th, 2014
+last update: May 23rd, 2014
 
 the daemon requires at least saltstack 0.16.2 with the 'new_job' event. 
 
@@ -13,20 +13,24 @@ verified? good!
 installation is simple for the mysql-backend.
 
 1. install mysql-server and create a database, name does not matter, just remember it.
-2. import the supplied mysql-dump from /usr/share/doc/salt-eventsd/ into your 
-   database. 
+2. import the supplied mysql-dump from /usr/share/doc/salt-eventsd/mysql-example.sql 
+   into your database. 
    
    $ cat /usr/share/doc/salt-eventsd/mysql-example.sql | mysql <database_name>
 
    it will create two tables:
     
-      <database_name>.command: thats where all published commands go
-      <database_name>.results: thats where all the replies go
+      <database_name>.cmd_hist: thats where all published commands go
+      <database_name>.returns: thats where all the replies go
 
-3. have a look at the salt-eventsd config: /etc/salt/events. just notice, that there
+3. have a look at the salt-eventsd config: /etc/salt/eventsd. just notice, that there
    are different sections:
 
    general
+   worker_credentials
+      - all workers
+      - worker1
+      - worker2
    events
       - event_name1
       - event_name2
@@ -34,16 +38,19 @@ installation is simple for the mysql-backend.
 
     each settings has comments that try to describe what the setting does.
 
-4. have a look at the backnds in /etc/salt/eventsd_workers/ and adjust
-   their mysql-credentials at line 22. do this for all workers!
+    change whats necessary, at least the credentials for the workers!
+
+4. have a look at the backnds in /etc/salt/eventsd_workers/ and notice,
+   that there are two workers:
+   - New_Job_Worker.py -> for writing new commands into msql
+   - Minion_Return_Worker.py -> for writing returns into mysql
 
 5. (re)start the daemon with its init-skript and the data should start coming in
    once you issue a few commands to your minions. issued commands can be found in the 
-   'commands'-table, the results in 'results'. dont be confused if you see base64
+   'cmd_hist'-table, the results in 'returns'. dont be confused if you see base64
    encoded data. salt-eventsd does this with various fields to ensure, that characters
-   within the data to insert to break the mysql-query.
-
-   when extracting data from the database keep the base64-decode in mind.
+   within the data to insert do not break the mysql-query (which can easily happen with
+   python data-structures). all data base64 data is also json-encoded for easy extraction.
 
 6. if you dont see any data coming in, see the debug section below and tail the logfile
    /var/log/salt/eventsd
@@ -51,12 +58,15 @@ installation is simple for the mysql-backend.
 
 A few words on filtering:
 The salt-eventsd reads all events from the event-bus which match the tags configured
-in the config (others are ignored). The results the minions return, always have a jid
-as tag. Matching on that to get all the returns is no problem, but its not possible to 
+in the config (others are ignored). All events have tag. See here on what the look like:
+
+http://docs.saltstack.com/en/latest/topics/event/master_events.html
+
+Matching on that to get all the returns is no problem, but its not possible to 
 filter and sort any further just by the tag.
 
 If collecting all results is good enough for you, you're fine. The default config and workers
-alread do that for you.
+already do that for you.
 
 If you have more filtering- and sorting-needs, you have to define sub-events under the 
 'return'-event. Why under the return-event? Because it already matches on returns. The sub-events
@@ -66,24 +76,28 @@ Example:
 
 test.ping would return something like this:
 
-  {'tag': '20130911154847888287', 
+  {'tag': ' salt/job/20130911154847888287/ret/server01.yourdomain.org',
    'data': {'jid': '20130911154847888287', 
             'return': True, 
 	    'retcode': 0, 
 	    'success': True, 
 	    'cmd': '_return', 
 	    'fun': 'test.ping', 
-	    'id': 'wp033.webpack.hosteurope.de'}
+	    'id': 'server01.yourdomain.porg'}
   }
 
-Because the 'return'-event matches on the 20-digit tag, the result would be put into
+Because the 'return'-event matches on the tag-field, the result would be put into
 the 'results'table. That works for all events as long as the 'return'-event is left in
 the config-file. By defining a sub-event under the 'return'-event, the event will by processed
 further.
 
-After matching the 20-digit-tag, the daemon will check, if there a more events defined under the
+After matching the tag, the daemon will check, if there a more events defined under the
 'return'-event. If so, the daemon will check all sub-events if they match on the 'fun'-field and
-use that sub-event-config if it matches. See the config-file for sub-event configurations.
+use that sub-event-config if it matches. the matching event will then be copied to the sub-event too:
+
+That means the above event will be sent to the worker defined in event 'return' AND to the worker
+defined in the sub-event. that way you can have a full job history AND have the returned data also
+send somewhere else. 
 
 
 New backend-feature:
