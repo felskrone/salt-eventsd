@@ -16,13 +16,13 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `command`
+-- Table structure for table `cmd_hist`
 --
 
-DROP TABLE IF EXISTS `command`;
+DROP TABLE IF EXISTS `cmd_hist`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `command` (
+CREATE TABLE `cmd_hist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `jid` varchar(20) NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
