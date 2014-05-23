@@ -1,3 +1,12 @@
+salt-eventsd (0.5+11) stable; urgency=low
+
+  * return and sub-events now both receive events, it was either or before
+  * updated commentary
+  * moved worker credentials to main config
+  * updated example workers with credential-retrieval code
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Fri, 23 May 2014 14:29:33 +0200
+
 salt-eventsd (0.5+10) stable; urgency=low
 
   * removed installation of workers, users should add them theirselfs
