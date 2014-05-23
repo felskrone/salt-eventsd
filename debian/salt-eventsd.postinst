@@ -21,8 +21,15 @@ case "$1" in
     ;;
 esac
 
-update-python-modules -a -f -v
-update-rc.d salt-eventsd defaults
+if [ -f /usr/sbin/update-python-modules ]
+then 
+    update-python-modules -a -f -v
+fi
+
+if [ -f /usr/sbin/update-rc.d ]
+then 
+    update-rc.d salt-eventsd defaults
+fi
 
 if [ $? -eq 0 ]
 then
