@@ -17,39 +17,53 @@ class Minion_Return_Worker(object):
     takes care of dumping 'return'-data into the database
     '''
 
-    # the settings for the mysql-server to use it should
-    # be a write-only user for security reasons
-    username = "_username_here_"
-    password = "_password_here_"
-    database = "_database_here_"
-    hostname = "localhost"
-
+    # the settings for the mysql-server to use
+    creds = {}
+       
     name = "Minion_Return_Worker"
+    thread_id = None
 
-    def setup(self):
+    def setup(self,
+              thread_id,
+              **kwargs):
         '''
         init the connection and do other necessary stuff
         '''
+        self.thread_id = thread_id
+
+        # get the credentials from the main config in kwargs
+        if 'worker_credentials' in kwargs:
+            if self.name in kwargs['worker_credentials']:
+                self.creds.update(kwargs['worker_credentials'][self.name])
+            elif 'all' in kwargs['worker_credentials']:
+                self.creds.update(kwargs['worker_credentials']['all'])
+            else:
+                log.info('{0}# no credentials loaded from config'.format(self.thread_id))
+
         # create the mysql connection and get the cursor
-        self.conn = MysqlConn(self.hostname,
-                         self.username,
-                         self.password,
-                         self.database)
+        self.conn = MysqlConn(self.creds['hostname'],
+                              self.creds['username'],
+                              self.creds['password'],
+                              self.creds['database'],
+                              self.thread_id)
+
         self.cursor = self.conn.get_cursor()
 
         # keep track of the events dumped
         self.dumped = 0
 
-        log.info("Worker '{0}' initiated".format(self.name))
+        log.info("{0}# Worker '{1}' initiated".format(self.thread_id,
+                                                      self.name))
 
-    
+
     def shutdown(self):
         '''
         close the connection to the mysql-server and maybe
         do some other cleanup if necessary
         '''
-        log.info("dumped {0} events to {1}".format(self.dumped,
-                                                   self.hostname))
+        log.info("{0}# dumped {1} events to {2}".format(self.thread_id,
+                                                        self.dumped,
+                                                        self.hostname))
         self.conn.cls()
         #log.debug("Worker '{0}' shut down".format(self.name))
            
@@ -128,7 +142,8 @@ class Minion_Return_Worker(object):
                 else:
                     tgt_data.append(src_data[fld]) 
 
-            log.debug(sql_qry.format(tgt_table, 
+            log.debug(self.thread_id + "# " + \
+                      sql_qry.format(tgt_table, 
                                      *tgt_data))
 
             # execute the sql_qry
@@ -138,9 +153,9 @@ class Minion_Return_Worker(object):
             self.conn.comm()
             self.dumped += 1
         except Exception as excerr:
-            log.critical("dont know how to handle:'{0}'".format(
-                                                            event)
-                                                         )   
+            log.critical("{0}# dont know how to handle:'{1}'".format(self.thread_id,
+                                                                     event)
+                                                              )
             log.exception(excerr)
 
 class MysqlConn(object):
@@ -152,7 +167,8 @@ class MysqlConn(object):
                  hostname,
                  username,
                  password,
-                 database):
+                 database,
+                 thread_id):
         ''' 
         creates a mysql connecton on invocation
         '''
@@ -161,6 +177,7 @@ class MysqlConn(object):
         self.database = database
         self.hostname = hostname
         self.cursor = None
+        self.thread_id = thread_id
 
         try:
             self.mysql_con = MySQLdb.connect(host = self.hostname,
@@ -169,7 +186,7 @@ class MysqlConn(object):
                                              db = self.database)
             self.cursor = self.mysql_con.cursor()
         except MySQLdb.MySQLError as sqlerr:
-            log.error("Conneting to the mysql-server failed:")
+            log.error("{0}# Connecting to the mysql-server failed:".format(self.thread_id))
             log.error(sqlerr)
         #log.debug("initialized connection {0}".format(self))
 
