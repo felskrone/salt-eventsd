@@ -1,6 +1,7 @@
 '''
-This is the main SaltEventsDaemon class. It holds all the logic that listens 
-for events, collects events and starts all the workers to dump data.
+This is the main SaltEventsdWorker class. It receives collected events,
+initiates a new backend thread, passes it the given events and makes sure,
+that the created thread is cleanly joined onces its done.
 '''
 
 import threading
@@ -18,7 +19,8 @@ class SaltEventsdWorker(threading.Thread):
                  qdata,
                  name,
                  event_map,
-                 backends):
+                 backends,
+                 **kwargs):
 
         threading.Thread.__init__(self)
         self.setName(name)
@@ -26,6 +28,8 @@ class SaltEventsdWorker(threading.Thread):
         self.events = qdata
         self.event_map = event_map
         self.backends = backends
+        self.kwargs = kwargs
+        log.debug(self.kwargs)
 
         self.active_backends = {}
 
@@ -42,7 +46,7 @@ class SaltEventsdWorker(threading.Thread):
         creates a new backend-worker
         '''
         setup_backend = copy.deepcopy( self.backends[backend] )
-        setup_backend.setup(self.name)
+        setup_backend.setup(self.name, **self.kwargs)
         self.active_backends[backend] = setup_backend
 
     def _cleanup(self):
