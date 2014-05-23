@@ -117,18 +117,17 @@ events:
         # The above settings for the 'return'-event already matches on all returns that occur on the event 
         # bus and puts the returns into the database. If thats all you need, you dont need to change anything.
         # Of course you can alter the return-event above to any other backend with the settings of your choice.
-        # The above settings for the 'return'-event already matches on all returns that occur on the event 
-        # bus and puts the returns into the database. If thats all you need, you dont need to change anything.
-        # Of course you can alter the return-event above to any other backend with the settings of your choice.
     
         # If you need more fine-grained control read on:
+        # IMPORTANT NOTE: for sub-events to work, there has to be a basic return-event defined!
+        #
         # Its not always desireable, to have ALL returns in the same mysql-table. With sub-events you can first
-        # match on an return-event and then inspect that event further to have it forwarded to a backend of 
+        # match on an return-event itself and then inspect that event further to have it copied to a backend of 
         # your choicse.
-        # For sub-events the daemon first matches on the 20-digit-tag and then looks into the 'fun'-field to
-        # decide, which backend the event should be forwarded to. The sub-event completely overrides the 
-        # settings for the 'return'-event above.
-
+        # For sub-events the daemon first matches on the 'tag'-field and then looks into the 'fun'-field to
+        # decide, which backend the event should _also_ be forwarded to. That means that two workers can receive
+        # the same event. For example when executing a test.ping the return worker will receive 'True'. If you
+        # also setup a sub-event listening for test.ping, the worker from the sub-event will also receive it.
 
         # define sub-events for the return-event
         subs:
