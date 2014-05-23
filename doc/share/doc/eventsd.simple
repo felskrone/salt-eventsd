@@ -16,6 +16,7 @@ general:
     max_workers: 100
     # how many events to collect before starting a worker 
     # that dumps the collected events into the database
+    # i suggest starting with one and raising it once it works
     event_limit: 1
     # where the daemon should put its pidfile
     pidfile: /var/run/salt-eventsd.pid
@@ -34,9 +35,30 @@ general:
     dump_timer: 60
     # the backends to load on daemon-start, see the documentation in 
     # /usr/share/doc/salt-eventsd/backends.txt on how to write your own
-    backends: [Minion_Return_Worker, New_Job_Worker]
+    backends: [Minion_Return_Worker, Minion_Sub_Worker, New_Job_Worker]
     # where to find the active backends 
     backend_dir: /etc/salt/eventsd_workers
+
+
+##### CREDENTIALS FOR THE WORKERS #############
+###############################################
+# add each worker with its name and its credentials here.
+# if no worker is defined but an entry called 'all'
+# exists, all worker will use the settings from global
+worker_credentials:
+
+    # this entry will be used by any worker that is not explicitly defined
+    all:
+        username: <user>
+        password: <password>
+        hostname: <hostname>
+        database: <database>
+    # add a worker with its name here, to have it use its own credentials
+       #Minion_Sub_Worker:
+       #username: <user>
+       #password: <password>
+       #hostname: <hostname>
+       #database: <database>
        
 
 ###### EVENT CONFIGURATION SETTINGS #######
@@ -47,42 +69,40 @@ events:
     # name of the event, can be anything, its not used anywhere but in here
     new_job: 
         # the backend to use for this type of event. the fields 'backend' and
-       # 'tag' are the only two relevant fields to the daemon for matching an
-       # event to a backend. the event itself and the rest of the fields are 
-       # passed on to the backend and have to be handled in there.
+        # 'tag' are the only two relevant fields to the daemon for matching an
+        # event to a backend. the event itself and the rest of the fields are 
+        # passed on to the backend and have to be handled in there.
         backend: New_Job_Worker
         # the tag of the event to we want to match
         # regexes are also supported as long as python supports them
-        tag: new_job
+        tag:  salt/job/[0-9]*/new
         # the mysql-table the command should be inserted into
-        mysql_tab: command
+        mysql_tab: cmd_hist
         # the sql-query to perform with the events data
+        # the field servername is missing in the 'fields' below, its added on the fly by the worker
         template: insert into {0} (jid, user, fun, arg, tgt, tgt_type) values ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}');
         # the dictionary-name in the event that holds the data we're interested in
         dict_name: data
         # the fields from the dict above we want to use
+        # the field 'cur_host' is evaluated on the fly in the worker
+        # to the hsotname the salt-eventsd is running on
         fields: [jid, user, fun, arg, tgt, tgt_type]
-       # enable debugging for the backend
+        # enable debugging for the backend
         debug: false
 
     return: 
-        # This event matches on ALL results returned from a minion due to the tag being
-        # defined as a 20-digit-number (ALL returns have the jid as tag). By default all 
-        # results will be put in the table defined by the 'mysql_tag' fields (defaults to
-        # 'results'). 
-
+        # This event matches on ALL results returned from a minion 
+        # By default all results will be put in the table defined by 
+	# the 'mysql_tag' fields (defaults to # 'results'). 
        
-        # This is a special event. It matches on all returns which have a jid as tag.
-        # It will put ALL returns into the table 'results' without looking at the return
-        # itself.
         # The tag is defined as regex. Any regex python supports is supported
-        # but has to be escaped and quoted to work.
-        tag: "\\d{20}"
+        # but has to be escaped (if necessary) and quoted to work.
+        tag:  salt/job/[0-9]*/ret/\w+
         # the backend where to send events that match this tag
         backend: Minion_Return_Worker
         # the mysql-table the data should be written to (mysql-credentials are currently
         # defined in the backend itself) but can also be defined here.
-        mysql_tab: results
+        mysql_tab: returns
         # the mysql-query-template to format and execute
         template: insert into {0} (jid, srv_id, retcode, returns, success) values ('{1}', '{2}', '{3}', '{4}', '{5}');
         # the dictionary-name WITHIN the returned event-dictionary 
@@ -93,3 +113,4 @@ events:
         fields: [jid, id, retcode, return, success]
         # enable debugging for this event
         debug: false
+
