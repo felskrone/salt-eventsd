@@ -35,5 +35,4 @@ echo "INFO: NOT STARTING THE DAEMON. CONFIGURE IT FIRST!"
 echo "INFO: see /etc/salt/eventsd for configuration."
 echo "INFO: sample database-scheme to install can be found here: "
 echo "INFO: /usr/share/doc/salt-eventsd/mysql-example.sql"
-echo "INFO: 
 echo ""
