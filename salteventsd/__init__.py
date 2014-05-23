@@ -408,7 +408,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         worker = SaltEventsdWorker(list(qdata),
                                    self.threads_cre,
                                    self.event_map,
-                                   self.backends)
+                                   self.backends,
+                                   **self.opts)
 
         worker.start()
         self.running_workers.append(worker)
