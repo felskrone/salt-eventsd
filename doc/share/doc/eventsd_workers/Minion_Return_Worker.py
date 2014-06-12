@@ -63,10 +63,8 @@ class Minion_Return_Worker(object):
         '''
         log.info("{0}# dumped {1} events to {2}".format(self.thread_id,
                                                         self.dumped,
-                                                        self.hostname))
+                                                        self.creds['hostname']))
         self.conn.cls()
-        #log.debug("Worker '{0}' shut down".format(self.name))
-           
 
     def send(self, 
              entry,
