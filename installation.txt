@@ -3,6 +3,9 @@
 
 last update: May 23rd, 2014
 
+REQUIREMENTS 
+simplejson
+
 the daemon requires at least saltstack 0.16.2 with the 'new_job' event. 
 
 check this commit against your salt-master source.
