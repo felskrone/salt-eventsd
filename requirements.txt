@@ -1,1 +1,2 @@
 salt>=0.16.2
+python-simplejson
