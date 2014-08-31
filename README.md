@@ -1,7 +1,9 @@
 # salt-eventsd 
 (a project based on but not related to saltstack)
 
-The latest changes are always documented in the changelog.
+If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
+
+### What it does
 
 A event-listener daemon for saltstack that writes data into mysql, postgres, statistical data into graphite, mongo,
 etc. All events that occur on saltstacks eventbus can be handled and pushed to other daemons, databases, etc. You
