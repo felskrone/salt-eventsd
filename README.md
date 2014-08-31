@@ -2,7 +2,8 @@
 (a project based on but not related to saltstack)
 
 A event-listener daemon for saltstack that writes data into mysql, postgres, statistical data into graphite, mongo,
-etc. Basically all issued commands and their returns can be handled and put into anything you like :-)
+etc. All events that occur on saltstacks eventbus can be handled and pushed to other daemons, databases, etc. You
+decide yourself!
 
 The daemon connects to the salt-masters event-bus and listens for all events. Depending on the configuration,
 certain events can be collected by their tag and/or function-name and handed down to different workers. The 
@@ -29,14 +30,18 @@ job-cache.
 Saltstacks job-cache can be completely disabled because all the data is in an independent database, fully indexed, searcheable and 
 easily cleaned up and/or archived with a few querys.
 
-More info will follow soon :-)
+In larger environments it is also a good idea, to seperate different services from one another. With salt-eventsd you can use saltstack for
+communication and salt-eventsd to collect the actual data. The benefit is, that the salt-master does not need to be restarted just because changes
+were done for example to a reactor or a runner.
 
 ### Features
 - collect events from the salt-event-bus into a different backends
+- collect a configurable amount of events before pushing them into different backends
+- define Prio1 events that are pushed immediately without queing them first
 - write your own backends with ease (some python knowledge required)
 - use regular expressions for matching on events, very flexible and powerful
-- have events send to two backend for having a command+return history as well as having the data pushed elsewhere
+- have events send to two backends for having a command+return history as well as having the data pushed elsewhere
 - create your own sql-query-templates for inserting data into the database 
 - fully saltstack-job-cache independant database to hold all data you want in it
-- etc.
+- example workers are found in the doc-directory
 
