@@ -249,8 +249,17 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                         if( self.event_map[key]['tag'].match(ret['tag'])):
                             log.debug("matching on {0}:{1}".format(key, 
                                                                    ret['tag']))
-                            event_queue.append(ret)
-                            self.events_han += 1
+
+                            prio = self.event_map[key].get('prio', 0)
+
+                            # push prio1-events directly into a worker
+                            if prio > 0:
+                                log.debug('Prio1 event found, pushing immediately!')
+                                self.events_han += 1
+                                self._init_worker([ret])
+                            else:
+                                event_queue.append(ret)
+                                self.events_han += 1
 
             # once we reach the event_limit, start a worker that
             # writes that data in to the database
