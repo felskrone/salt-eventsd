@@ -88,6 +88,11 @@ events:
         fields: [jid, user, fun, arg, tgt, tgt_type]
         # enable debugging for the backend
         debug: false
+        # by defining a priority > 1, you can have events pushed immediately into a
+        # backend without having to wait for the event_limit or the timer to be reached.
+        # there are only two levels, 0 and bigger than zero, 1 or 9 does not make a difference
+        # dont use this too much though, your target might not like it :-)
+        # prio: 1
 
     return: 
         # This event matches on ALL results returned from a minion 
