@@ -1,3 +1,16 @@
+salt-eventsd (0.8) stable; urgency=low
+
+  * added prio1 event with immediate push
+  * fixed issues #7 #8 #9
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Sun, 31 Aug 2014 15:59:22 +0200
+
+salt-eventsd (0.7) stable; urgency=low
+
+  * fixed github issue 4# 
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Thu, 12 Jun 2014 15:09:57 +0200
+
 salt-eventsd (0.6) stable; urgency=low
 
   * virtual version bump, no changes made
