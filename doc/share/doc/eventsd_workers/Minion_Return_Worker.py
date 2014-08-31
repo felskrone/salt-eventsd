@@ -4,13 +4,21 @@ it takes care of dumping the 'return'-field into the database
 after its json-encoded and base64 converted.
 '''
 
-import simplejson
-import threading
-from base64 import b64encode
+# import and setup logger first, so we can catch
+# missing libraries on imports
 import logging
-import MySQLdb
 
 log = logging.getLogger(__name__)
+
+try:
+    import simplejson
+    import threading
+    from base64 import b64encode
+    import MySQLdbg
+except ImportError as mis_lib:
+    log.error('Failed to start worker: {0}'.format(mis_lib))
+    log.exception(mis_lib)
+
 
 class Minion_Return_Worker(object):
     '''

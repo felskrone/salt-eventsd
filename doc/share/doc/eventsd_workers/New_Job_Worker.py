@@ -6,14 +6,23 @@ it takes care of the fields 'tgt' and 'arg', which might contain
 characters that brake mysql-queries because of '-characters
 '''
 
-import simplejson
-import threading
-from base64 import b64encode
+# import and setup logger first, so we can catch
+# missing libraries on imports
 import logging
-import MySQLdb
-from socket import gethostname
 
 log = logging.getLogger(__name__)
+
+try:
+    import simplejson
+    import threading
+    from base64 import b64encode
+    import logging
+    import MySQLdb
+    from socket import gethostname
+except ImportError as mis_lib:
+    log.error('Failed to start worker: {0}'.format(mis_lib))
+    log.exception(mis_lib)
+
 
 class New_Job_Worker(object):
     '''
