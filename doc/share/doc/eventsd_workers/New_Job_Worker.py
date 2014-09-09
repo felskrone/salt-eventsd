@@ -1,5 +1,5 @@
 '''
-this Worker takes care of 'new_job'-event-data generated on 
+this Worker takes care of 'new_job'-event-data generated on
 salt-masters by using the salt-binary or the mqshell.
 
 it takes care of the fields 'tgt' and 'arg', which might contain
@@ -70,7 +70,7 @@ class New_Job_Worker(object):
         log.info("{0}# Worker '{1}' initiated".format(self.thread_id,
                                                       self.name))
 
-    
+
     def shutdown(self):
         '''
         close the connection to the mysql-server and maybe
@@ -78,17 +78,17 @@ class New_Job_Worker(object):
         '''
         log.info("{0}# dumped {1} events to {2}".format(self.name,
                                                         self.dumped,
-                                                        self.hostname))
+                                                        self.creds['hostname']))
         self.conn.cls()
         #log.debug("Worker '{0}' shut down".format(self.name))
-           
 
-    def send(self, 
+
+    def send(self,
              entry,
              event_set):
         '''
         this has to be present in any Worker for the salt-eventsd.
-        It receives events with their corresponding setting and 
+        It receives events with their corresponding setting and
         passes it on to a handler-function
         '''
         #log.debug("received entry:{0} with settings: {1}".format(entry,
@@ -101,7 +101,7 @@ class New_Job_Worker(object):
                event_set):
         '''
         the actual worker-function which parses the event-configuration,
-        tries to match it against the event and creates a mysql-query 
+        tries to match it against the event and creates a mysql-query
         which it finally executes to send the data to mysql
         '''
 
@@ -114,12 +114,12 @@ class New_Job_Worker(object):
             src_flds = event_set['fields']
             # our data is on the first level
             src_data = event[src_dict]
-   
+
             # there one event we want to ignore. it just contains
             # {'tag': 'new_job', 'data': {'tgt_type': 'glob', 'jid': '20140515142954787191', 'tgt': 'wp001.webpack.hosteurope.de', '_stamp': '2014-05-15T14:29:54.787681', 'user': 'root', 'arg': [], 'fun': 'test.ping', 'minions': ['wp001.webpack.hosteurope.de']}}
 
-           
-            # DEPRECATED SINCE SALT 2014.01 
+
+            # DEPRECATED SINCE SALT 2014.01
             # its used by salt internally so we skip it
             # if 'minions' in src_data:
             #     return
@@ -132,12 +132,12 @@ class New_Job_Worker(object):
             # here. the fields-list and the template from the config
             # are formatted with one another to form a very flexible
             # sql-query. the order in the fields- and template-
-            # variable have to match EXACTLY, otherwise the query 
+            # variable have to match EXACTLY, otherwise the query
             # will brake with an invalid syntax or maybe just end up
-            # with wrong data 
+            # with wrong data
             tgt_data = []
 
-            # create a list to format the sql_qry with, order 
+            # create a list to format the sql_qry with, order
             # is very important here! to be on the safe side, return
             # data is always converted to base64 and listdata always
             # json-dumped. the rest of the data is inserted as is
@@ -148,7 +148,7 @@ class New_Job_Worker(object):
                 # arg-data is considered unsafe and needs to be
                 # json-dumped and base64 encoded
                 if fld == 'arg':
-                    tgt_data.append(b64encode( 
+                    tgt_data.append(b64encode(
                                         simplejson.dumps(
                                             src_data[fld])
                                         )
@@ -161,19 +161,19 @@ class New_Job_Worker(object):
                         tgt_data.append(src_data[fld])
 
 
-                # the rest of the new_job-data can be inserted as is 
+                # the rest of the new_job-data can be inserted as is
                 # because its usually ints, bool, simple strings
                 else:
-                    tgt_data.append(src_data[fld]) 
+                    tgt_data.append(src_data[fld])
 
             # append the current api-host we'running on
             tgt_data.append(self.api_host)
             log.debug(self.thread_id + "# " + \
-                      sql_qry.format(tgt_table, 
+                      sql_qry.format(tgt_table,
                                      *tgt_data))
 
             # execute the sql_qry
-            self.cursor.execute( sql_qry.format(tgt_table, 
+            self.cursor.execute( sql_qry.format(tgt_table,
                                                 *tgt_data) )
             # commit the changes
             self.conn.comm()
@@ -181,11 +181,11 @@ class New_Job_Worker(object):
         except Exception as excerr:
             log.critical("{0}# dont know how to handle:'{1}'".format(self.thread_id,
                                                                      event)
-                                                              )   
+                                                              )
             log.exception(excerr)
 
 class MysqlConn(object):
-    ''' 
+    '''
     Mysql Wrapper class to simply create mysql-connections
     '''
 
@@ -195,7 +195,7 @@ class MysqlConn(object):
                  password,
                  database,
                  thread_id):
-        ''' 
+        '''
         creates a mysql connecton on invocation
         '''
         self.username = username
@@ -217,7 +217,7 @@ class MysqlConn(object):
         #log.debug("initialized connection {0}".format(self))
 
     def get_cursor(self):
-        ''' 
+        '''
         returns the current mysql-cursor for this connection
         '''
         if(self.cursor):
@@ -226,7 +226,7 @@ class MysqlConn(object):
             raise AttributeError("Trying to get cursor of uninitialized connection")
 
     def cls(self):
-        ''' 
+        '''
         explicitly close a connection tomysql
         '''
         #log.debug("closing connection {0}".format(self))
@@ -237,7 +237,7 @@ class MysqlConn(object):
             raise AttributeError("Trying close uninitialized connection")
 
     def comm(self):
-        ''' 
+        '''
         commits the changes of the connectionexplicitly close a connection tomysql
         '''
         self.mysql_con.commit()
