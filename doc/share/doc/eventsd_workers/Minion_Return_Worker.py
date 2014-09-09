@@ -14,7 +14,7 @@ try:
     import simplejson
     import threading
     from base64 import b64encode
-    import MySQLdbg
+    import MySQLdb
 except ImportError as mis_lib:
     log.error('Failed to start worker: {0}'.format(mis_lib))
     log.exception(mis_lib)
