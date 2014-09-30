@@ -1,3 +1,9 @@
+salt-eventsd (0.9) stable; urgency=low
+
+  * version bump for minor changes
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Tue, 30 Sep 2014 14:24:57 +0200
+
 salt-eventsd (0.8) stable; urgency=low
 
   * added prio1 event with immediate push
