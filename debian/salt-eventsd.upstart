@@ -1,7 +1,0 @@
-description "salt-eventsd - listening daemon for saltstack events"
-
-start on runlevel [2345]
-stop on runlevel [016] or unmounting-filesystem
-
-expect daemon
-exec /usr/bin/salt-eventsd start
