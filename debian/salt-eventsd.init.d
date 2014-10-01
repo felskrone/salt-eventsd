@@ -48,16 +48,33 @@ do_stop() {
     #   1 if daemon was already stopped
     #   2 if daemon could not be stopped
     #   other if a failure occurred
+
     pids=$(pidof -x $DAEMON)
-    if [ $? -eq 0 ] ; then
-       echo $pids | xargs kill 2&1> /dev/null
-       RETVAL=0
+
+    # if pidof did not work, try looking into the pidfile
+    if [ -z $pids ]
+    then
+        if [ -f ${PIDFILE} ]
+        then
+            pids=$(cat ${PIDFILE})
+        fi  
+    fi  
+        
+    if [ -z $pids ]
+    then
+        echo -e "\nFailed to determine salt-eventsd's pid" && return 2
+    fi  
+
+    if [ $? -eq 0 ] 
+    then
+        # salt-eventsd listens for signal 15
+        echo $pids | xargs kill -15 2&1> /dev/null
+        RETVAL=0
     else
-       RETVAL=1
-    fi
+        RETVAL=1
+    fi  
 
     [ "$RETVAL" = 2 ] && return 2
-    rm -f $PIDFILE
     return "$RETVAL"
 }
 
