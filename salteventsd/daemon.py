@@ -2,8 +2,8 @@
 this daemon is based on the work of Sander Marechal
 http://www.jejik.com/articles/2007/02/a_simple_unix_linux_daemon_in_python/
 
-Its extended with a signal handler so debians start-stop-daemon can be used. 
-That change also cleans up the code because stop() and restart() can be 
+Its extended with a signal handler so debians start-stop-daemon can be used.
+That change also cleans up the code because stop() and restart() can be
 removed/shortened. It has also been updated to newer python versions
 and python code styles.
 '''
@@ -14,16 +14,16 @@ import signal
 import logging
 
 log = logging.getLogger(__name__)
- 
+
 class Daemon(object):
     '''
-    daemonizing class that does all the double-forking magic 
+    daemonizing class that does all the double-forking magic
     '''
 
-    def __init__(self, 
-                 pidfile, 
-                 stdin='/dev/null', 
-                 stdout='/dev/null', 
+    def __init__(self,
+                 pidfile,
+                 stdin='/dev/null',
+                 stdout='/dev/null',
                  stderr='/dev/null'):
         self.stdin = stdin
         self.stdout = stdout
@@ -53,7 +53,7 @@ class Daemon(object):
                 # exit first parent
                 sys.exit(0)
         except OSError, oserr:
-            sys.stderr.write("fork #1 failed:{0}({1})\n".format(oserr.errno, 
+            sys.stderr.write("fork #1 failed:{0}({1})\n".format(oserr.errno,
                                                                 oserr.strerror))
             sys.exit(1)
 
@@ -69,7 +69,7 @@ class Daemon(object):
                 # exit from second parent
                 sys.exit(0)
         except OSError, oserr:
-            sys.stderr.write("fork #2 failed:{0}({1})\n".format(oserr.errno, 
+            sys.stderr.write("fork #2 failed:{0}({1})\n".format(oserr.errno,
                                                                 oserr.strerror))
             sys.exit(1)
 
@@ -112,7 +112,7 @@ class Daemon(object):
         if pid:
             sys.stderr.write("pidfile {0} already exists.\n".format(self.pidfile))
             sys.exit(1)
-       
+
         # Start the daemon
         self.daemonize()
         self.run()
