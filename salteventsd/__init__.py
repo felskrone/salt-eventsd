@@ -19,6 +19,7 @@ from salteventsd.loader import SaltEventsdLoader
 from salteventsd.worker import SaltEventsdWorker
 from salteventsd.backends import BackendMngr
 import salteventsd.daemon
+import signal
 import zmq
 
 log = logging.getLogger(__name__)
@@ -133,7 +134,10 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         log.info("salt-eventsd has shut down")
 
         # leave the cleanup to the supers stop
-        super(SaltEventsDaemon, self).stop(signal, frame)
+        try:
+            super(SaltEventsDaemon, self).stop(signal, frame)
+        except (IOError, OSError):
+            os._exit(0)
 
 
     def start(self):
@@ -216,6 +220,9 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 ret = event.get_event(full=True)
             except zmq.ZMQError:
                 pass
+            except KeyboardInterrupt:
+                log.info('Received CTRL+C, shutting down')
+                self.stop(signal.SIGTERM, None)
 
             if ret is None:
                 continue
