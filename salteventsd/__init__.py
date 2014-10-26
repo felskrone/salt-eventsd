@@ -7,14 +7,11 @@ import time
 import os
 import simplejson
 import sys
-from threading import Thread
 from re import compile
-from base64 import b64encode
 import salt.utils.event
 import logging
 import salt.log
 from salteventsd.timer import ResetTimer
-#from salteventsd.mysql import MysqlConn
 from salteventsd.loader import SaltEventsdLoader
 from salteventsd.worker import SaltEventsdWorker
 from salteventsd.backends import BackendMngr
