@@ -318,22 +318,22 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 self._write_state()
                 self.ev_timer_ev = False
 
-        log.info("listen loop ended...")                
+        log.info("listen loop ended...")
 
 
     def _get_pid(self):
         '''
-        get our current pid from the pidfile, basically the 
-        same as os.getpid()
+        get our current pid from the pidfile and fall back
+        to os.getpid() if pidfile not present (on foreground mode)
         '''
+        pid = None
         try:
-            pidf = file(self.pidfile,'r')
+            pidf = file(self.pidfile, 'r')
             pid = int(pidf.read().strip())
             pidf.close()
-            return pid
-
         except IOError:
-            return None
+            pid = os.getpid()
+        return pid
 
 
     def _write_state(self):
