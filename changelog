@@ -1,3 +1,8 @@
+version 0.9, Oct 26th 2014
+* handle CTRL+C properly when run in foreground
+* cosmetic changes to docstrings, comments and tracking of files in git
+* fix requirements.txt for pip-users
+
 version 0.8, Aug 31st 2014
 * Prio 1 events added to push events immediately without queing them first
 * Improved daemon handling on the console by addind argparse options, partly fixes #5
