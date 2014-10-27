@@ -3,6 +3,8 @@
 
 If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
 
+The current stable release is tagged version 0.9.
+
 ### What it does
 
 A event-listener daemon for saltstack that writes data into mysql, postgres, statistical data into graphite, mongo,
