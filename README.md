@@ -1,4 +1,4 @@
-# salt-eventsd 
+# salt-eventsd
 (a project based on but not related to saltstack)
 
 If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
@@ -10,7 +10,7 @@ etc. All events that occur on saltstacks eventbus can be handled and pushed to o
 decide yourself!
 
 The daemon connects to the salt-masters event-bus and listens for all events. Depending on the configuration,
-certain events can be collected by their tag and/or function-name and handed down to different workers. The 
+certain events can be collected by their tag and/or function-name and handed down to different workers. The
 workers then extract the desired data-fields from the return and process them further in a user-definable way.
 
 
@@ -29,9 +29,9 @@ is not always desirable or maybe not even be an option. With this daemon, you ca
 While saltstacks job-cache works well in smaller environments, in larger environments the job-cache can become a burden for the salt-master. Especially
 if the job-cache should be kept for a longer period of time, and im talking weeks and month here. This is where the salt-eventsd jumps in. With the
 default mysql-backend, its easy to collect data for weeks and weeks without burdening the salt-master to keep track of jobs and their results in the
-job-cache. 
+job-cache.
 
-Saltstacks job-cache can be completely disabled because all the data is in an independent database, fully indexed, searcheable and 
+Saltstacks job-cache can be completely disabled because all the data is in an independent database, fully indexed, searcheable and
 easily cleaned up and/or archived with a few querys.
 
 In larger environments it is also a good idea, to seperate different services from one another. With salt-eventsd you can use saltstack for
@@ -41,11 +41,11 @@ were done for example to a reactor or a runner.
 ### Features
 - collect events from the salt-event-bus into a different backends
 - collect a configurable amount of events before pushing them into different backends
-- define Prio1 events that are pushed immediately without queing them first
+- define Prio1 events that are pushed immediately without queuing them first
 - write your own backends with ease (some python knowledge required)
 - use regular expressions for matching on events, very flexible and powerful
 - have events send to two backends for having a command+return history as well as having the data pushed elsewhere
-- create your own sql-query-templates for inserting data into the database 
+- create your own sql-query-templates for inserting data into the database
 - fully saltstack-job-cache independant database to hold all data you want in it
 - example workers are found in the doc-directory
 
