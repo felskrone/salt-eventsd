@@ -5,6 +5,15 @@ If you are already using salt-eventsd, check the changelog for the latest change
 
 The current stable release is tagged version 0.9.
 
+### Availability Notes
+A debian-package can be built straight from the repo by running 'dpkg-buildpackage -b'. All dependencies
+have to be installed of course.
+
+There are no packages for redhat yet. If you have the knowledge and the ressources to support that, feel
+free to submit the necessary changes.
+
+Its also not yet on pypi, but thats in the works.
+
 ### What it does
 
 A event-listener daemon for saltstack that writes data into mysql, postgres, statistical data into graphite, mongo,
