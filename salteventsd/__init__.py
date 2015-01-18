@@ -27,9 +27,9 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
     and dumping takes place
     '''
 
-    def __init__(self):
+    def __init__(self, config):
 
-        self.opts = SaltEventsdLoader().getopts()
+        self.opts = SaltEventsdLoader(config=config).getopts()
 
         self._pre_startup(self.opts)
 
