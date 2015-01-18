@@ -1,5 +1,5 @@
 '''
-The loader is created by the main SaltEventsDaemon. It takes care of loading 
+The loader is created by the main SaltEventsDaemon. It takes care of loading
 the given config with a default of '/etc/salt/eventsd'. It also takes care of
 initializing the logger from saltstack.
 '''
@@ -19,8 +19,7 @@ class SaltEventsdLoader(object):
     The loader takes care of reading the configfile and
     setting up the correct logger.
     '''
-    def __init__(self,
-                 config='/etc/salt/eventsd'):
+    def __init__(self, config='/etc/salt/eventsd'):
 
         # retrieve current settings from the config file
         self.opts = None
@@ -33,30 +32,28 @@ class SaltEventsdLoader(object):
         self._init_logger()
         log.info("loaded config from {0}".format(config))
 
-
     def _init_logger(self):
         '''
         sets up the logger used throughout saltt-eventsd
         '''
-
         # make sure we have the required settings for our logging
         if ('logfile' in self.gen_opts) and \
-           ('loglevel' in self.gen_opts) : 
+           ('loglevel' in self.gen_opts):
 
-            salt.log.setup_logfile_logger(self.gen_opts['logfile'],
-                                          self.gen_opts['loglevel'])
+            salt.log.setup_logfile_logger(
+                self.gen_opts['logfile'],
+                self.gen_opts['loglevel'],
+            )
 
         # if no log settings found, use defaults
         else:
-            log.setup_logfile_logger('/var/log/salt/eventsd',
-                                     'warn')
+            log.setup_logfile_logger('/var/log/salt/eventsd', 'warn')
 
     def getopts(self):
         '''
         returns the parsed options to the SaltEventsDaemon-Class
         '''
         return self.opts
-
 
     def _read_yaml(self, path):
         '''
@@ -66,23 +63,19 @@ class SaltEventsdLoader(object):
         try:
             yaml_handle = open(path)
             self.opts = yaml.load(yaml_handle.read())
-
         except yaml.parser.ParserError as yamlerr:
-            print "Failed to parse configfile: {0}".format(path)
-            print yamlerr
+            print("Failed to parse configfile: {0}".format(path))
+            print(yamlerr)
             sys.exit(1)
-
         except yaml.scanner.ScannerError as yamlerr:
-            print "Failed to parse configfile: {0}".format(path)
-            print yamlerr
+            print("Failed to parse configfile: {0}".format(path))
+            print(yamlerr)
             sys.exit(1)
-
         except IOError as ioerr:
-            print "Failed to read configfile:"
-            print os.strerror(ioerr.errno)
+            print("Failed to read configfile:")
+            print(os.strerror(ioerr.errno))
             sys.exit(1)
-
         except OSError as oserr:
-            print "Failed to read configfile:"
-            print os.strerror(oserr.errno)
+            print("Failed to read configfile:")
+            print(os.strerror(oserr.errno))
             sys.exit(1)
