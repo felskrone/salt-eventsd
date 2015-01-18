@@ -2,3 +2,4 @@ salt>=0.16.2
 mysql-python
 simplejson
 argparse
+pyzmq

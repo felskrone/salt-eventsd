@@ -3,37 +3,24 @@
 The setup script for salteventsd
 '''
 
-import os
-# Use setuptools only if the user opts-in by setting the USE_SETUPTOOLS env var
-# This ensures consistent behavior but allows for advanced usage with
-# virtualenv, buildout, and others.
-USE_SETUPTOOLS = False
-if 'USE_SETUPTOOLS' in os.environ:
-    try:
-        from setuptools import setup
-        USE_SETUPTOOLS = True
-    except:
-        USE_SETUPTOOLS = False
-
-
-if USE_SETUPTOOLS is False:
+try:
+    from setuptools import setup
+except ImportError:
     from distutils.core import setup
-
 
 # pylint: disable-msg=W0122,E0602
 exec(compile(open('salteventsd/version.py').read(), 'salteventsd/version.py', 'exec'))
 VERSION = __version__
 # pylint: enable-msg=W0122,E0602
 
-NAME = 'salt-eventsd'
-DESC = ("Daemon that collects events from the salt-event-bus and writes them into a database")
+with open('README.md') as f:
+    readme = f.read()
 
-kwargs = dict()
-
-kwargs.update(
-    name=NAME,
+setup(
+    name='salt-eventsd',
     version=VERSION,
-    description=DESC,
+    description="Daemon that collects events from the salt-event-bus and writes them into a database",
+    long_description=readme,
     author='Volker Schwicking',
     author_email='vs@hosteurope.de',
     url='http://saltstack.org',
@@ -49,19 +36,11 @@ kwargs.update(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
         'Topic :: System :: Distributed Computing'],
+    install_requires=open('requirements.txt').readlines(),
     packages=['salteventsd'],
-    data_files=[('share/man/man1',
-        ['doc/man/salt-eventsd.1']),
-        ('share/man/man5',
-        ['doc/man/salt-eventsd.5'])],
+    data_files=[
+        ('share/man/man1', ['doc/man/salt-eventsd.1']),
+        ('share/man/man5', ['doc/man/salt-eventsd.5']),
+    ],
     scripts=['scripts/salt-eventsd'],
 )
-
-if USE_SETUPTOOLS:
-    kwargs.update(
-        install_requires=open('requirements.txt').readlines(),
-        test_suite='tests',
-    )
-
-setup(**kwargs)
-
