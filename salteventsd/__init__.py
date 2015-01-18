@@ -21,6 +21,7 @@ import zmq
 
 log = logging.getLogger(__name__)
 
+
 class SaltEventsDaemon(salteventsd.daemon.Daemon):
     '''
     The main daemon class where all the parsing, collecting
@@ -28,9 +29,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
     '''
 
     def __init__(self):
-
         self.opts = SaltEventsdLoader().getopts()
-
         self._pre_startup(self.opts)
 
         if type(self.opts) is not dict:
@@ -44,7 +43,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.event_map = None
         self._init_events(self.opts['events'])
 
-        self.backends = self._init_backends( self.config['backends'] )
+        self.backends = self._init_backends(self.config['backends'])
         log.info(self.backends)
 
         # the socket to listen on for the events
@@ -90,9 +89,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.ev_timer_intrvl = self.config['dump_timer']
         self.ev_timer = ResetTimer(
             self.ev_timer_intrvl,
-            self
+            self,
         )
-
 
     def timer_event(self):
         '''
@@ -101,10 +99,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         '''
         self.ev_timer_ev = True
 
-
-    def stop(self,
-             signal,
-             frame):
+    def stop(self, signal, frame):
         '''
         We override stop() to brake our main loop
         and have a pretty log message
@@ -115,7 +110,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         # that have finished. if we still have running workers after that,
         # wait 5 secs for the rest and then exit. Maybe we should improv
         # this a litte bit more
-        if( len(self.running_workers) > 0 ):
+        if len(self.running_workers) > 0:
             clean_workers = []
 
             for count in range(0, 2):
@@ -126,7 +121,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                         worker.join()
                         log.debug("Joined worker #{0}".format(worker.getName()))
 
-                if( len(clean_workers) > 0 ):
+                if len(clean_workers) > 0:
                     log.info("Waiting 5secs for remaining workers..")
                     time.sleep(5)
                 else:
@@ -140,7 +135,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         except (IOError, OSError):
             os._exit(0)
 
-
     def start(self):
         '''
         We override start() just for our log message
@@ -149,7 +143,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         # leave the startup to the supers daemon, thats where all
         # the daemonizing and double-forking takes place
         super(SaltEventsDaemon, self).start()
-
 
     def run(self):
         '''
@@ -161,24 +154,24 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self._write_state()
         self.listen()
 
-
-    def _pre_startup(self,
-                    opts):
+    def _pre_startup(self, opts):
         '''
         Does a startup-check if all needed parameters are
         found in the configfile. this is really important
         because we lose stdout in daemon mode and exceptions
         might not be seen by the user
         '''
-        required_general = [ 'sock_dir',
-                             'node',
-                             'max_workers',
-                             'id',
-                             'event_limit',
-                             'pidfile',
-                             'state_file',
-                             'state_upd',
-                             'dump_timer' ]
+        required_general = [
+            'sock_dir',
+            'node',
+            'max_workers',
+            'id',
+            'event_limit',
+            'pidfile',
+            'state_file',
+            'state_upd',
+            'dump_timer',
+        ]
 
         for field in required_general:
             if field not in opts['general']:
@@ -186,15 +179,16 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                              "'{0}' in configfile".format(field))
                 sys.exit(1)
 
-
     def listen(self):
         '''
         The main event loop where we receive the events and
         start the workers that dump our data into the database
         '''
         # log on to saltstacks event-bus
-        event = salt.utils.event.SaltEvent(self.node,
-                                           self.sock_dir)
+        event = salt.utils.event.SaltEvent(
+            self.node,
+            self.sock_dir,
+        )
 
         # we store our events in a list, we dont really care about an order
         # or what kind of data is put in there. all that is configured with the
@@ -213,7 +207,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
         # read everything we can get our hands on
         while True:
-
             # the zmq-socket does not like ^C very much, make the error
             # a little more graceful. alright, alright, ignore the damn thing,
             # we're exiting anyways...
@@ -243,20 +236,16 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                     # we reset the timer.ev_timer_ev  at the end of the loop
                     # so we can update the stats that are logged
 
-
             # filter only the events we're interested in. all events have a tag
             # we can filter them by. we match with a precompiled regex
-            if( 'tag' in ret ):
-
+            if 'tag' in ret:
                 # filter out events with an empty tag. those are special
-                if( ret['tag'] != '' ):
-
+                if ret['tag'] != '':
                     # run through our configured events and try to match the
                     # current events tag against the ones we're interested in
                     for key in self.event_map.keys():
-                        if( self.event_map[key]['tag'].match(ret['tag'])):
-                            log.debug("Matching on {0}:{1}".format(key,
-                                                                   ret['tag']))
+                        if self.event_map[key]['tag'].match(ret['tag']):
+                            log.debug("Matching on {0}:{1}".format(key, ret['tag']))
 
                             prio = self.event_map[key].get('prio', 0)
 
@@ -272,7 +261,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             # once we reach the event_limit, start a worker that
             # writes that data in to the database
             if len(event_queue) >= self.event_limit:
-
                 # only start a worker if not too many workers are running
                 if len(self.running_workers) < self.max_workers:
                     self._init_worker(event_queue)
@@ -281,7 +269,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
                     # reset our queue to prevent duplicate entries
                     del event_queue[:]
-
                 else:
                     # FIXME: we need to handle this situation somehow if
                     # too many workers are running. just flush the events?
@@ -313,7 +300,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
             # we update the stats every 'received div handled == 0'
             # or if we recevied a timer event from our ResetTimer
-            if( (self.events_rec % self.state_upd) == 0 ):
+            if (self.events_rec % self.state_upd) == 0:
                 self._write_state()
             elif(self.ev_timer_ev):
                 self._write_state()
@@ -321,13 +308,13 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
 
         log.info("Listen loop ended...")
 
-
     def _get_pid(self):
         '''
         Get our current pid from the pidfile and fall back
         to os.getpid() if pidfile not present (in foreground mode)
         '''
         pid = None
+
         try:
             pidf = file(self.pidfile, 'r')
             pid = int(pidf.read().strip())
@@ -335,7 +322,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         except IOError:
             pid = os.getpid()
         return pid
-
 
     def _write_state(self):
         '''
@@ -346,20 +332,27 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         try:
             # write the info to the specified log
             statf = open(self.state_file, 'w')
-            statf.writelines(simplejson.dumps({'events_received':self.events_rec,
-                                               'events_handled':self.events_han,
-                                               'threads_created':self.threads_cre,
-                                               'threads_joined':self.threads_join}
-                                             ))
+            statf.writelines(
+                simplejson.dumps({
+                    'events_received': self.events_rec,
+                    'events_handled': self.events_han,
+                    'threads_created': self.threads_cre,
+                    'threads_joined': self.threads_join,
+                })
+            )
+
             # if we have the same pid as the pidfile, we are the running daemon
             # and also print the current counters to the logfile with 'info'
-            if( os.getpid() == self.pid ):
+            if os.getpid() == self.pid:
                 log.info("Running with pid {0}".format(self.pid))
-                log.info("Events (han/recv): {0}/{1}".format(self.events_han,
-                                                             self.events_rec))
-                log.info("Threads (cre/joi):{0}/{1}".format(self.threads_cre,
-                                                            self.threads_join))
-
+                log.info("Events (han/recv): {0}/{1}".format(
+                    self.events_han,
+                    self.events_rec,
+                ))
+                log.info("Threads (cre/joi):{0}/{1}".format(
+                    self.threads_cre,
+                    self.threads_join,
+                ))
 
             statf.write("\n")
             statf.close()
@@ -375,11 +368,10 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         '''
         Loads the backends defined in the config
         '''
-        backend_mngr = BackendMngr( ['/usr/share/pyshared/salteventsd/',
-                                    self.config['backend_dir'] ] )
+        backend_mngr = BackendMngr(
+            ['/usr/share/pyshared/salteventsd/', self.config['backend_dir']]
+        )
         return backend_mngr.load_plugins()
-
-
 
     def _init_events(self, events={}):
         '''
@@ -389,14 +381,15 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.event_map = events
         # we precompile all regexes
         log.info("Initialising events...")
+
         for key in events.keys():
             # we compile the regex configured in the config
-            self.event_map[key]['tag'] = compile( events[key]['tag'] )
+            self.event_map[key]['tag'] = compile(events[key]['tag'])
             log.info("Added event '{0}'".format(key))
 
             # if subevents are configured, also update them with
             # regex-matching object
-            if( events[key].has_key('subs') ):
+            if 'subs' in events[key]:
                 for sub_ev in events[key]['subs'].keys():
                     try:
                         self.event_map[key]['subs'][sub_ev]['fun'] = compile(events[key]['subs'][sub_ev]['fun'])
@@ -408,8 +401,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                     except KeyError:
                         pass
 
-                    log.info("Added sub-event '{0}->{1}'".format(key,
-                                                                 sub_ev))
+                    log.info("Added sub-event '{0}->{1}'".format(key, sub_ev))
 
     def _init_worker(self, qdata):
         '''
@@ -421,12 +413,13 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         log.info("Starting worker #{0}".format(self.threads_cre))
 
         # make sure we pass a copy of the list
-        worker = SaltEventsdWorker(list(qdata),
-                                   self.threads_cre,
-                                   self.event_map,
-                                   self.backends,
-                                   **self.opts)
+        worker = SaltEventsdWorker(
+            list(qdata),
+            self.threads_cre,
+            self.event_map,
+            self.backends,
+            **self.opts
+        )
 
         worker.start()
         self.running_workers.append(worker)
-

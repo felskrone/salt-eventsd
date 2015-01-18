@@ -15,24 +15,19 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class Daemon(object):
     '''
     daemonizing class that does all the double-forking magic
     '''
 
-    def __init__(self,
-                 pidfile,
-                 stdin='/dev/null',
-                 stdout='/dev/null',
-                 stderr='/dev/null'):
+    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
 
-    def stop(self,
-             signal,
-             frame):
+    def stop(self, signal, frame):
         '''
         stop the daemon and clean up the pidfile
         '''
@@ -53,8 +48,10 @@ class Daemon(object):
                 # exit first parent
                 sys.exit(0)
         except OSError, oserr:
-            sys.stderr.write("fork #1 failed:{0}({1})\n".format(oserr.errno,
-                                                                oserr.strerror))
+            sys.stderr.write("fork #1 failed:{0}({1})\n".format(
+                oserr.errno,
+                oserr.strerror,
+            ))
             sys.exit(1)
 
         # decouple from parent environment
@@ -69,8 +66,10 @@ class Daemon(object):
                 # exit from second parent
                 sys.exit(0)
         except OSError, oserr:
-            sys.stderr.write("fork #2 failed:{0}({1})\n".format(oserr.errno,
-                                                                oserr.strerror))
+            sys.stderr.write("fork #2 failed:{0}({1})\n".format(
+                oserr.errno,
+                oserr.strerror,
+            ))
             sys.exit(1)
 
         # redirect standard file descriptors
@@ -89,7 +88,7 @@ class Daemon(object):
 
         # write pidfile
         pid = str(os.getpid())
-        file(self.pidfile,'w+').write("%s\n" % pid)
+        file(self.pidfile, 'w+').write("%s\n" % pid)
 
     def delpid(self):
         '''
@@ -103,7 +102,7 @@ class Daemon(object):
         '''
         # Check for a pidfile to see if the daemon already runs
         try:
-            pidf = file(self.pidfile,'r')
+            pidf = file(self.pidfile, 'r')
             pid = int(pidf.read().strip())
             pidf.close()
         except IOError:
@@ -116,7 +115,6 @@ class Daemon(object):
         # Start the daemon
         self.daemonize()
         self.run()
-
 
     def run(self):
         '''
