@@ -1,9 +1,6 @@
 '''
-this Worker takes care of 'new_job'-event-data generated on
-salt-masters by using the salt-binary or the mqshell.
-
-it takes care of the fields 'tgt' and 'arg', which might contain
-characters that brake mysql-queries because of '-characters
+this Stat_Worker takes care of pushing statistical data into a backend,
+in this case a mysql-backend with a table called events_stats.
 '''
 
 # import and setup logger first, so we can catch
@@ -62,11 +59,7 @@ class Stat_Worker(object):
 
         self.cursor = self.conn.get_cursor()
 
-        # keep track of the events dumped
-#        self.dumped = 0
-
-        log.info("{0}# Worker '{1}' initiated".format(self.thread_id,
-                                                      self.name))
+        log.info("{0}# {1} initiated".format(self.thread_id, self.name))
 
 
     def shutdown(self):
@@ -77,7 +70,6 @@ class Stat_Worker(object):
         log.info("{0}# dumped statistics to {1}".format(self.name,
                                                         self.creds['hostname']))
         self.conn.cls()
-        #log.debug("Worker '{0}' shut down".format(self.name))
 
 
     def send(self,
@@ -100,7 +92,7 @@ class Stat_Worker(object):
 
         If you derive your Stat_Worker from this example, i advise to always
         dump the data first, and see what you get.  There might be even more
-        keys:value pairs in the future.
+        key:value pairs in the future.
         
         Note that dummy is just that, a dummy variable and will always be None.
         Its just their to keep the daemon code clean and the workers alike.
@@ -112,27 +104,26 @@ class Stat_Worker(object):
         '''
         Sends the data to the mysql-server to insert them into the stats-table
         '''
-
         try:
 
             # the mysql-table to insert into
             qry = "INSERT INTO {0} (master, events_hdl, threads_joined, threads_created, events_rec, events_hdl_sec, events_tot_sec, last) "
             qry += "VALUES  ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', now()) "
             qry += "ON DUPLICATE KEY UPDATE "
-            qry += "events_hdl='{1}', threads_joined='{2}', threads_created='{3}', events_rec='{4}', events_hdl_sec='{5}', events_tot_sec='{6}', last=now();"
+            qry += "events_hdl='{2}', threads_joined='{3}', threads_created='{4}', events_rec='{5}', events_hdl_sec='{6}', events_tot_sec='{7}', last=now();"
 
-            log.info(qry.format(self.creds['table'],
-                                self.api_host,
-                                stats_data['events_hdl'],
-                                stats_data['threads_joined'],
-                                stats_data['threads_created'],
-                                stats_data['events_rec'],
-                                stats_data['events_hdl_sec'],
-                                stats_data['events_tot_sec'])
+            qry = qry.format(
+                self.creds['table'],
+                self.api_host,
+                stats_data['events_hdl'],
+                stats_data['threads_joined'],
+                stats_data['threads_created'],
+                stats_data['events_rec'],
+                stats_data['events_hdl_sec'],
+                stats_data['events_tot_sec']
             )
 
-
-#            # execute the sql_qry
+            # execute the sql_qry
             self.cursor.execute(qry)
             self.conn.comm()
         except Exception as excerr:
