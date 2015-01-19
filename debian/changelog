@@ -1,3 +1,13 @@
+salt-eventsd (0.9.1) stable; urgency=low
+
+  * coding style improvements and cleanup of pep8 violations (PR #20, thx Grokzen)
+  * improved setup.py for pypi (work in progress, PR #21, thx Grokzen)
+  * config from cli support (PR #23, thx Grokzen)
+  * new counters in /var/run/salt-eventsd.status for monitoring
+  * new Stat_Worker for pushing stats into backends
+
+ -- Volker Schwicking <volker.schwicking@heg.com>  Tue, 30 Sep 2014 14:24:57 +0200
+
 salt-eventsd (0.9) stable; urgency=low
 
   * version bump for minor changes
