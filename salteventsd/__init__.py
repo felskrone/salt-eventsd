@@ -77,10 +77,19 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.running_workers = []
 
         # setup some counters used for the status
+        # the events we matched on
         self.events_han = 0
         self.events_rec = 0
+
+        # the threads we have created and joined
+        # if there numbers diverge, we have a memory leak
         self.threads_cre = 0
         self.threads_join = 0
+
+        # used to keep track of the delta between two stat_timer intervals
+        # to calculate events per second handled/received
+        self.stat_rec_count = 0
+        self.stat_hdl_count = 0
 
         # the timer thats write data to the database every x seconds
         # this is used to push data into the database even if
@@ -363,6 +372,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         except OSError as oserr:
             log.critical("Failed to write state to {0}".format(self.state_file))
             log.exception(oserr)
+        self.stat_rec_count = self.events_rec
+        self.stat_hdl_count = self.events_han
 
     def _init_backends(self, backends):
         '''
