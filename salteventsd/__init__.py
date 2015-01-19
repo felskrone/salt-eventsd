@@ -121,10 +121,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             return
 
         if source == 'Event':
-            log.info('event timer set')
             self.ev_timer_ev = True
         elif source == 'Stat':
-            log.info('stat timer set')
             self._write_state()
         else:
             pass
@@ -357,6 +355,27 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         '''
         ev_hdl_per_s = float((float(self.events_han - self.stat_hdl_count)) / float(self.state_timer_intrvl))
         ev_tot_per_s = float((float(self.events_rec - self.stat_rec_count)) / float(self.state_timer_intrvl))
+
+        log.info(self.config['stat_worker'])
+        if self.config['stat_worker']:
+            stat_data = {
+                'events_rec': self.events_rec,
+                'events_hdl': self.events_han,
+                'events_hdl_sec': round(ev_hdl_per_s, 2),
+                'events_tot_sec': round(ev_tot_per_s, 2),
+                'threads_created': self.threads_cre,
+                'threads_joined': self.threads_join
+            }
+
+            st_worker = SaltEventsdWorker(
+                stat_data,
+                self.threads_cre,
+                None,
+                self.backends,
+                **self.opts
+            )
+            st_worker.start()
+            self.running_workers.append(st_worker)
 
         try:
             # write the info to the specified log
