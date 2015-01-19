@@ -99,14 +99,35 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.ev_timer = ResetTimer(
             self.ev_timer_intrvl,
             self,
+            name='Event'
         )
 
-    def timer_event(self):
+        # the timer that writes statistical data to the status-file
+        self.state_timer_ev = False
+        self.state_timer_intrvl = self.config['state_timer']
+
+        self.state_timer = ResetTimer(
+            self.state_timer_intrvl,
+            self,
+            name='Stat'
+        )
+
+    def timer_event(self, source=None):
         '''
         This is called whenever the timer started in __init__()
         gets to the end of its counting loop
         '''
-        self.ev_timer_ev = True
+        if not source:
+            return
+
+        if source == 'Event':
+            log.info('event timer set')
+            self.ev_timer_ev = True
+        elif source == 'Stat':
+            log.info('stat timer set')
+            self._write_state()
+        else:
+            pass
 
     def stop(self, signal, frame):
         '''
@@ -204,8 +225,9 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         # templates configured in the configfile
         event_queue = []
 
-        # start our dump_timer
+        # start our timers
         self.ev_timer.start()
+        self.state_timer.start()
 
         # this is for logline chronology so the timer-message always comes
         # _before_ the actual startup-message of the listening loop below :-)
