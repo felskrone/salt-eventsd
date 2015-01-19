@@ -1,29 +1,29 @@
 #### salt-eventsd installation ####
 ###################################
 
-last update: May 23rd, 2014
+last update: Jan 19th, 2015
 
-the daemon requires at least saltstack 0.16.2 with the 'new_job' event. 
+The daemon requires at least saltstack 0.16.2 with the 'new_job' event.
 
-check this commit against your salt-master source.
+Check this commit against your salt-master source.
 https://github.com/saltstack/salt/pull/6551
 
-verified? good!
+Verified? Good!
 
-installation is simple for the mysql-backend.
+Installation is simple for the mysql-backend.
 
 1. install mysql-server and create a database, name does not matter, just remember it.
-2. import the supplied mysql-dump from /usr/share/doc/salt-eventsd/mysql-example.sql 
-   into your database. 
-   
+2. Import the supplied mysql-dump from /usr/share/doc/salt-eventsd/mysql-example.sql
+   into your database.
+
    $ cat /usr/share/doc/salt-eventsd/mysql-example.sql | mysql <database_name>
 
-   it will create two tables:
-    
+I  It will create two tables:
+
       <database_name>.cmd_hist: thats where all published commands go
       <database_name>.returns: thats where all the replies go
 
-3. have a look at the salt-eventsd config: /etc/salt/eventsd. just notice, that there
+3. Have a look at the salt-eventsd config: /etc/salt/eventsd. just notice, that there
    are different sections:
 
    general
@@ -36,23 +36,23 @@ installation is simple for the mysql-backend.
       - event_name2
       - etc.
 
-    each settings has comments that try to describe what the setting does.
+    Each settings has comments that tries to describe what the setting does.
 
-    change whats necessary, at least the credentials for the workers!
+    cCange whats necessary, at least the credentials for the workers!
 
-4. have a look at the backnds in /etc/salt/eventsd_workers/ and notice,
+4. Have a look at the backends in /etc/salt/eventsd_workers/ and notice,
    that there are two workers:
-   - New_Job_Worker.py -> for writing new commands into msql
+   - New_Job_Worker.py -> for writing new commands into mysql
    - Minion_Return_Worker.py -> for writing returns into mysql
 
-5. (re)start the daemon with its init-skript and the data should start coming in
-   once you issue a few commands to your minions. issued commands can be found in the 
+5. (Re)start the daemon with its init-skript and the data should start coming in
+   once you issue a few commands to your minions. issued commands can be found in the
    'cmd_hist'-table, the results in 'returns'. dont be confused if you see base64
    encoded data. salt-eventsd does this with various fields to ensure, that characters
    within the data to insert do not break the mysql-query (which can easily happen with
-   python data-structures). all data base64 data is also json-encoded for easy extraction.
+   python data-structures). all data base64 is also json-encoded for easy extraction.
 
-6. if you dont see any data coming in, see the debug section below and tail the logfile
+6. If you dont see any data coming in, see the debug section below and tail the logfile
    /var/log/salt/eventsd
 
 
@@ -62,13 +62,13 @@ in the config (others are ignored). All events have tag. See here on what the lo
 
 http://docs.saltstack.com/en/latest/topics/event/master_events.html
 
-Matching on that to get all the returns is no problem, but its not possible to 
+Matching on that to get all the returns is no problem, but its not possible to
 filter and sort any further just by the tag.
 
 If collecting all results is good enough for you, you're fine. The default config and workers
 already do that for you.
 
-If you have more filtering- and sorting-needs, you have to define sub-events under the 
+If you have more filtering- and sorting-needs, you have to define sub-events under the
 'return'-event. Why under the return-event? Because it already matches on returns. The sub-events
 just give more control over an already matched result.
 
@@ -77,12 +77,12 @@ Example:
 test.ping would return something like this:
 
   {'tag': ' salt/job/20130911154847888287/ret/server01.yourdomain.org',
-   'data': {'jid': '20130911154847888287', 
-            'return': True, 
-	    'retcode': 0, 
-	    'success': True, 
-	    'cmd': '_return', 
-	    'fun': 'test.ping', 
+   'data': {'jid': '20130911154847888287',
+            'return': True,
+	    'retcode': 0,
+	    'success': True,
+	    'cmd': '_return',
+	    'fun': 'test.ping',
 	    'id': 'server01.yourdomain.porg'}
   }
 
@@ -97,25 +97,51 @@ use that sub-event-config if it matches. the matching event will then be copied 
 
 That means the above event will be sent to the worker defined in event 'return' AND to the worker
 defined in the sub-event. that way you can have a full job history AND have the returned data also
-send somewhere else. 
+send somewhere else.
 
+#### collecting statistics ####
+###############################
+The daemon maintains a status file /var/run/salt-eventsd.status. It contains a few counters
+that allow monitoring of the daemon, for example whether threads are properly joined or that
+events are coming through by providing the total events received, etc. Currently the following
+fields are written to the status file:
 
-New backend-feature:
-With 0.5 the daemon can handle multiple backends. You can have your minion-returns in 
-different mysql-tables, or have them sent to a graphite server, or, or, or. Its up to you,
-you can easily write you own workers that do whatever you want them to. They just have to 
-follow a few guidelines.
+  - events_hdl_sec: the events the daemon has matched against its config per second
+  - events_tot_sec: the total events received on the eventbus per second
+  - events_hdl: the total count of events handled
+  - events_rec: the total count of events received
+  - threads_created: the total number of threads created
+  - threads_joined: the total number of threads joined
 
+I advice to have a close look at the thread-counters. If the threads_cre grows faster
+than the threads_joined, there is likely a memory-leak that will sooner or later let
+the server go out of memory.
+
+If you want your statistical data in a backend like mysql, you can use the setting
+
+stat_worker: true
+
+in the general section of the config. The daemon will then periodically (stat_timer)
+create a Stat_worker that receives the same data that is written to the status file
+described above. A sample stat-worker is located in the docs dir.
+
+/usr/share/doc/salt-eventsd/events_workers/Stat_Worker.py
+
+The Stat_worker does not require any configuration in the main config-file. If you want
+to use the supplied Stat_worker.py, the credentials for this worker (worker_credential
+setting) have to be updated with a field table:
+
+table: <target_table>
 
 #### debugging ####
 ###################
-1. set the debugging level in config to 'debug' and restart the daemon. the logfile
+1. Set the debugging level in config to 'debug' and restart the daemon. the logfile
    in /var/log/salt/ will (hopefully) tell you whats going wrong.
 
-2. if the daemon does not respond anymore, you're free to kill it with 'kill -9 <pid'.
-   if thats necessary, start the daemon on the command line with:
+2. If the daemon does not respond anymore, you're free to kill it with 'kill -9 <pid'.
+   If thats necessary, start the daemon on the command line with:
 
-       $ salt-eventsd fg
+       $ salt-eventsd -l debug
 
    and redo what you did before. If there is an exception, it will be printed to the
    console where the daemon is running in the foreground. I'd appreciate it, if you
@@ -125,7 +151,7 @@ follow a few guidelines.
 #### contact ####
 #################
 feel free to contact me via github or mail@blafoo.org. sometimes i'm on irc at
-kornbluth.freenode.net in #salt and/or #salt-devel with the nick 'felskrone'. but 
-please remember, that i am from europe/germany and salt is currently more popular 
+kornbluth.freenode.net in #salt and/or #salt-devel with the nick 'felskrone'. but
+please remember, that i am from europe/germany and salt is currently more popular
 in the US. Answering might take me a day or two.
 

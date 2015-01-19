@@ -3,7 +3,10 @@
 
 If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
 
-The current stable release is tagged version 0.9.
+The current stable release is tagged version 0.9
+
+The current development release is tagged version 0.9.1. If you want to try this version,
+make sure you replace 'state_upd' setting with 'state_timer': <seconds>.
 
 ### Availability Notes
 A debian-package can be built straight from the repo by running 'dpkg-buildpackage -b'. All dependencies
