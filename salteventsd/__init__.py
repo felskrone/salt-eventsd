@@ -329,12 +329,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             self.running_workers = clean_workers
             self.events_rec += 1
 
-            # we update the stats every 'received div handled == 0'
-            # or if we recevied a timer event from our ResetTimer
-            if (self.events_rec % self.state_upd) == 0:
-                self._write_state()
-            elif(self.ev_timer_ev):
-                self._write_state()
+            if(self.ev_timer_ev):
                 self.ev_timer_ev = False
 
         log.info("Listen loop ended...")
