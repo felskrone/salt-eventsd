@@ -44,7 +44,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self._init_events(self.opts['events'])
 
         self.backends = self._init_backends(self.config['backends'])
-        log.info(self.backends)
 
         # the socket to listen on for the events
         self.sock_dir = self.config['sock_dir']
@@ -356,7 +355,6 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         ev_hdl_per_s = float((float(self.events_han - self.stat_hdl_count)) / float(self.state_timer_intrvl))
         ev_tot_per_s = float((float(self.events_rec - self.stat_rec_count)) / float(self.state_timer_intrvl))
 
-        log.info(self.config['stat_worker'])
         if self.config['stat_worker']:
             stat_data = {
                 'events_rec': self.events_rec,
