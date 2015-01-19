@@ -355,15 +355,20 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         this includes the current pid, events received/handled
         and threads created/joined
         '''
+        ev_hdl_per_s = float((float(self.events_han - self.stat_hdl_count)) / float(self.state_timer_intrvl))
+        ev_tot_per_s = float((float(self.events_rec - self.stat_rec_count)) / float(self.state_timer_intrvl))
+
         try:
             # write the info to the specified log
             statf = open(self.state_file, 'w')
             statf.writelines(
                 simplejson.dumps({
-                    'events_received': self.events_rec,
-                    'events_handled': self.events_han,
+                    'events_rec': self.events_rec,
+                    'events_hdl': self.events_han,
+                    'events_hdl_sec': round(ev_hdl_per_s, 2),
+                    'events_tot_sec': round(ev_tot_per_s, 2),
                     'threads_created': self.threads_cre,
-                    'threads_joined': self.threads_join,
+                    'threads_joined': self.threads_join
                 })
             )
 
