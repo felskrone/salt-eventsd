@@ -4,7 +4,7 @@ salt-eventsd (0.9.1) stable; urgency=low
   * improved setup.py for pypi (work in progress, PR #21, thx Grokzen)
   * config from cli support (PR #23, thx Grokzen)
   * new counters in /var/run/salt-eventsd.status for monitoring
-  * new Stat_Worker for pushing stats into backends
+  * new Stat_Worker for pushing stats into backends, see /usr/share/doc/salt-eventsd/eventsd_workers/Stat_worker.py
 
  -- Volker Schwicking <volker.schwicking@heg.com>  Tue, 30 Sep 2014 14:24:57 +0200
 
