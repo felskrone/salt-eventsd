@@ -33,15 +33,22 @@ class SaltEventsdWorker(threading.Thread):
         in its own thread
         '''
         log.info("{0}# started".format(threading.currentThread().getName()))
-        self._store_data()
+        # stats are dicts, events are always lists
+        if isinstance(self.events, dict):
+            self._store_stats()
+        elif isinstance(self.events, list):
+            self._store_data()
 
     def _init_backend(self, backend):
         '''
         creates a new backend-worker
         '''
-        setup_backend = copy.deepcopy(self.backends[backend])
-        setup_backend.setup(self.name, **self.kwargs)
-        self.active_backends[backend] = setup_backend
+        try:
+            setup_backend = copy.deepcopy(self.backends[backend])
+            setup_backend.setup(self.name, **self.kwargs)
+            self.active_backends[backend] = setup_backend
+        except KeyError:
+            log.error("Backend {0} is not a valid backend".format(backend))
 
     def _cleanup(self):
         '''
@@ -50,6 +57,10 @@ class SaltEventsdWorker(threading.Thread):
         '''
         for (name, backend) in self.active_backends.items():
             backend.shutdown()
+
+    def _store_stats(self):
+        self._init_backend('Stat_Worker')
+        self.active_backends['Stat_Worker'].send(self.events, None)
 
     def _store_data(self):
         '''
