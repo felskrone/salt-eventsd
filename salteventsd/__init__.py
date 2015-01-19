@@ -365,6 +365,8 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 'threads_joined': self.threads_join
             }
 
+            self.threads_cre += 1
+
             st_worker = SaltEventsdWorker(
                 stat_data,
                 self.threads_cre,
