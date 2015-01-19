@@ -60,7 +60,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
         self.state_file = self.config['state_file']
 
         # how many events to handle before updating the status
-        self.state_upd = self.config['state_upd']
+        self.state_timer = self.config['state_timer']
 
         # we dont know our pid (yet), its updated in run()
         self.pid = None
@@ -169,7 +169,7 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
             'event_limit',
             'pidfile',
             'state_file',
-            'state_upd',
+            'state_timer',
             'dump_timer',
         ]
 
