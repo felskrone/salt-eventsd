@@ -18,13 +18,14 @@ class ResetTimer(threading.Thread):
     running = False
     counter = 0
 
-    def __init__(self, interval, ref=False):
+    def __init__(self, interval, ref=False, name='Noname'):
         threading.Thread.__init__(self)
         self.interval = interval
         self.ref = ref
+        self.name = name
 
     def run(self):
-        log.info("starting event_timer")
+        log.info("Starting {0}-timer".format(self.name))
         self.running = True
 
         while self.running:
@@ -44,16 +45,16 @@ class ResetTimer(threading.Thread):
 
             # if the reference is set, call it
             if self.ref:
-                log.debug("timer finished, calling reference")
-                self.ref.timer_event()
+                log.debug("{0}-timer finished, calling reference".format(self.name))
+                self.ref.timer_event(self.name)
             else:
-                log.debug("timer finished")
+                log.debug("{0}-timer finished".format(self.name))
 
     def reset(self):
         '''
         reset the timer instance's counter (i.e. restart the loop)
         '''
-        log.debug("resetting the timer")
+        log.debug("resetting the {0}-timer".format(self.name))
         self.counter = 0
 
     def stop(self):
