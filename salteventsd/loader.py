@@ -56,6 +56,7 @@ class SaltEventsdLoader(object):
         '''
         return self.opts
 
+
     def _read_yaml(self, path):
         '''
         reads a yaml-formatted configuration file at the given path and
@@ -64,12 +65,6 @@ class SaltEventsdLoader(object):
         try:
             yaml_handle = open(path)
             self.opts = yaml.load(yaml_handle.read())
-<<<<<<< HEAD
-            log.debug("read config file: {0}".format(path))
-            log.debug(pprint.pformat(self.opts))
-
-=======
->>>>>>> 5d12f898496e23cdf4f880223d603b14e924c0e2
         except yaml.parser.ParserError as yamlerr:
             print("Failed to parse configfile: {0}".format(path))
             print(yamlerr)
@@ -79,20 +74,10 @@ class SaltEventsdLoader(object):
             print(yamlerr)
             sys.exit(1)
         except IOError as ioerr:
-<<<<<<< HEAD
-            print("Failed to read configfile: {0}".format(path))
-            print os.strerror(ioerr.errno)
-=======
             print("Failed to read configfile:")
             print(os.strerror(ioerr.errno))
->>>>>>> 5d12f898496e23cdf4f880223d603b14e924c0e2
             sys.exit(1)
         except OSError as oserr:
-<<<<<<< HEAD
-            print("Failed to read configfile: {0}".format(path))
-            print os.strerror(oserr.errno)
-=======
             print("Failed to read configfile:")
             print(os.strerror(oserr.errno))
->>>>>>> 5d12f898496e23cdf4f880223d603b14e924c0e2
             sys.exit(1)
