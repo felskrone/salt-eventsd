@@ -1,5 +1,5 @@
 '''
-The loader is created by the main SaltEventsDaemon. It takes care of loading 
+The loader is created by the main SaltEventsDaemon. It takes care of loading
 the given config with a default of '/etc/salt/eventsd'. It also takes care of
 initializing the logger from saltstack.
 '''
@@ -22,7 +22,6 @@ class SaltEventsdLoader(object):
     '''
     def __init__(self, config=None):
         self.config_file = config if config else "/etc/salt/eventsd"
-
         # retrieve current settings from the config file
         self.opts = None
         self._read_yaml(self.config_file)
@@ -34,30 +33,28 @@ class SaltEventsdLoader(object):
         self._init_logger()
         log.info("loaded config from {0}".format(config))
 
-
     def _init_logger(self):
         '''
         sets up the logger used throughout saltt-eventsd
         '''
-
         # make sure we have the required settings for our logging
         if ('logfile' in self.gen_opts) and \
-           ('loglevel' in self.gen_opts) : 
+           ('loglevel' in self.gen_opts):
 
-            salt.log.setup_logfile_logger(self.gen_opts['logfile'],
-                                          self.gen_opts['loglevel'])
+            salt.log.setup_logfile_logger(
+                self.gen_opts['logfile'],
+                self.gen_opts['loglevel'],
+            )
 
         # if no log settings found, use defaults
         else:
-            log.setup_logfile_logger('/var/log/salt/eventsd',
-                                     'warn')
+            log.setup_logfile_logger('/var/log/salt/eventsd', 'warn')
 
     def getopts(self):
         '''
         returns the parsed options to the SaltEventsDaemon-Class
         '''
         return self.opts
-
 
     def _read_yaml(self, path):
         '''
@@ -67,25 +64,35 @@ class SaltEventsdLoader(object):
         try:
             yaml_handle = open(path)
             self.opts = yaml.load(yaml_handle.read())
+<<<<<<< HEAD
             log.debug("read config file: {0}".format(path))
             log.debug(pprint.pformat(self.opts))
 
+=======
+>>>>>>> 5d12f898496e23cdf4f880223d603b14e924c0e2
         except yaml.parser.ParserError as yamlerr:
-            print "Failed to parse configfile: {0}".format(path)
-            print yamlerr
+            print("Failed to parse configfile: {0}".format(path))
+            print(yamlerr)
             sys.exit(1)
-
         except yaml.scanner.ScannerError as yamlerr:
-            print "Failed to parse configfile: {0}".format(path)
-            print yamlerr
+            print("Failed to parse configfile: {0}".format(path))
+            print(yamlerr)
             sys.exit(1)
-
         except IOError as ioerr:
+<<<<<<< HEAD
             print("Failed to read configfile: {0}".format(path))
             print os.strerror(ioerr.errno)
+=======
+            print("Failed to read configfile:")
+            print(os.strerror(ioerr.errno))
+>>>>>>> 5d12f898496e23cdf4f880223d603b14e924c0e2
             sys.exit(1)
-
         except OSError as oserr:
+<<<<<<< HEAD
             print("Failed to read configfile: {0}".format(path))
             print os.strerror(oserr.errno)
+=======
+            print("Failed to read configfile:")
+            print(os.strerror(oserr.errno))
+>>>>>>> 5d12f898496e23cdf4f880223d603b14e924c0e2
             sys.exit(1)

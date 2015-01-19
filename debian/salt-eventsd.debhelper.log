@@ -27,7 +27,9 @@ dh_installppp
 dh_installudev
 dh_installwm
 dh_installxfonts
+dh_installgsettings
 dh_bugfiles
+dh_ucf
 dh_lintian
 dh_gconf
 dh_icons
@@ -36,10 +38,8 @@ dh_usrlocal
 dh_link
 dh_compress
 dh_fixperms
-dh_strip
-dh_makeshlibs
-dh_shlibdeps
 dh_installdeb
 dh_gencontrol
 dh_md5sums
+dh_builddeb
 dh_builddeb

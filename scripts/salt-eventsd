@@ -2,8 +2,9 @@
 
 # Import libs
 import argparse
-import sys 
+import sys
 from salteventsd import SaltEventsDaemon
+
 
 class ArgParser(object):
     '''
@@ -87,7 +88,7 @@ def main():
 
     if args['version']:
         import salteventsd.version
-        print 'salt-eventsd version {0}'.format(salteventsd.version.__version__)
+        print('salt-eventsd version {0}'.format(salteventsd.version.__version__))
         sys.exit(0)
 
     daemon = SaltEventsDaemon(config=args['config'])
