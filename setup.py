@@ -8,17 +8,14 @@ try:
 except ImportError:
     from distutils.core import setup
 
-# pylint: disable-msg=W0122,E0602
-exec(compile(open('salteventsd/version.py').read(), 'salteventsd/version.py', 'exec'))
-VERSION = __version__
-# pylint: enable-msg=W0122,E0602
+import salteventsd
 
 with open('README.md') as f:
     readme = f.read()
 
 setup(
     name='salt-eventsd',
-    version=VERSION,
+    version=salteventsd.__version__,
     description="Daemon that collects events from the salt-event-bus and writes them into a database",
     long_description=readme,
     author='Volker Schwicking',

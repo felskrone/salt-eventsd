@@ -3,7 +3,8 @@
 # Import libs
 import argparse
 import sys
-from salteventsd import SaltEventsDaemon
+
+from salteventsd.daemon import SaltEventsDaemon
 
 
 class ArgParser(object):
@@ -41,6 +42,15 @@ class ArgParser(object):
             dest='loglevel',
             required=False,
             help=('the loglevel to start the daemon in the foreground with')
+        )
+
+        self.main_parser.add_argument(
+            '--logfile',
+            type=str,
+            default=None,
+            dest='logfile',
+            required=False,
+            help=('the logfile to write log messages to')
         )
 
         self.main_parser.add_argument(
@@ -87,24 +97,20 @@ def main():
     args = vars(opts.parse_args())
 
     if args['version']:
-        import salteventsd.version
-        print('salt-eventsd version {0}'.format(salteventsd.version.__version__))
+        import salteventsd
+        print('salt-eventsd version {0}'.format(salteventsd.__version__))
         sys.exit(0)
 
-    daemon = SaltEventsDaemon(config=args['config'])
+    daemon = SaltEventsDaemon(
+        config=args['config'],
+        log_level=args['loglevel'],
+        log_file=args['logfile'],
+    )
 
-    # if set start in the foreground
-    if args['loglevel']:
-        daemon.listen()
+    if args['daemonize']:
+        daemon.start()
     else:
-        # start and daemonize
-        if args['daemonize']:
-            daemon.start()
-
-        # no options were given
-        else:
-            opts.phelp()
-
+        daemon.listen()
 
 if __name__ == '__main__':
     main()
