@@ -375,7 +375,15 @@ class SaltEventsDaemon(salteventsd.daemon.Daemon):
                 **self.opts
             )
             st_worker.start()
-            self.running_workers.append(st_worker)
+            try:
+                self.running_workers.append(st_worker)
+            except AttributeError:
+                log.error('self is missing running_workers')
+                try:
+                    log.info(self)
+                    log.info(dir(self))
+                except Exception:
+                    log.error('Failed to dump dir(self)')
 
         try:
             # write the info to the specified log
