@@ -105,6 +105,7 @@ def main():
         config=args['config'],
         log_level=args['loglevel'],
         log_file=args['logfile'],
+        daemonize=args['daemonize']
     )
 
     if args['daemonize']:

@@ -147,11 +147,12 @@ class SaltEventsDaemon(Daemon):
     and dumping takes place
     '''
 
-    def __init__(self, config, log_level=None, log_file=None):
+    def __init__(self, config, log_level=None, log_file=None, daemonize=False):
         self.opts = SaltEventsdLoader(
             config=config,
             log_level=log_level,
             log_file=log_file,
+            daemonize=daemonize,
         ).getopts()
 
         self._pre_startup(self.opts)
