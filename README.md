@@ -32,7 +32,7 @@ There are no packages for redhat yet. If you have the knowledge and the ressourc
 free to submit the necessary changes.
 
 Pypi:
-As of Jan 22nd, we are on pypi.
+As of Jan 22nd, we are on pypi: https://testpypi.python.org/pypi/salt-eventsd
 
 
 ### What it does
