@@ -16,11 +16,12 @@ with open('README.md') as f:
 setup(
     name='salt-eventsd',
     version=salteventsd.__version__,
-    description="Daemon that collects events from the salt-event-bus and writes them into a database",
+    description="Daemon that collects events from the salt-event-bus and writes them into any backend, mysql, redis, etc.",
     long_description=readme,
     author='Volker Schwicking',
     author_email='vs@hosteurope.de',
-    url='http://saltstack.org',
+    url='https://github.com/felskrone/salt-eventsd',
+    download_url='https://github.com/felskrone/salt-eventsd/archive/0.9.1.tar.gz',
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
@@ -35,6 +36,7 @@ setup(
         'Topic :: System :: Distributed Computing'],
     install_requires=open('requirements.txt').readlines(),
     packages=['salteventsd'],
+    keywords = ['saltstack', 'salt'],
     data_files=[
         ('share/man/man1', ['doc/man/salt-eventsd.1']),
         ('share/man/man5', ['doc/man/salt-eventsd.5']),
