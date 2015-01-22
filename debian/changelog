@@ -5,8 +5,11 @@ salt-eventsd (0.9.1) stable; urgency=low
   * config from cli support (PR #23, thx Grokzen)
   * new counters in /var/run/salt-eventsd.status for monitoring
   * new Stat_Worker for pushing stats into backends, see /usr/share/doc/salt-eventsd/eventsd_workers/Stat_worker.py
+  * move code from __init__.py to daemon.py for clarity (PR #24, thx Grokzen)
+  * improve logging, finally logging to console working (PR #24, thx Grokzen)
+  * remove version.py and put version into __init__.py (PR #24, thx Grokzen)
 
- -- Volker Schwicking <volker.schwicking@heg.com>  Tue, 30 Sep 2014 14:24:57 +0200
+ -- Volker Schwicking <volker.schwicking@heg.com>  Thu, 22 Jan 2015 07:29:57 +0200
 
 salt-eventsd (0.9) stable; urgency=low
 
