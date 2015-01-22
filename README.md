@@ -23,16 +23,16 @@ If you're coming from 0.9 make sure, that you rename the setting 'stat_upd' to '
 
 
 ### Availability Notes
-Debian / Ubuntu:
+#### Debian / Ubuntu
 A debian-package can be built straight from the repo by running 'dpkg-buildpackage -b'. All dependencies
 have to be installed of course.
 
-Redhat / CentOS
+#### Redhat / CentOS
 There are no packages for redhat yet. If you have the knowledge and the ressources to support that, feel
 free to submit the necessary changes.
 
-Pypi:
-As of Jan 22nd, we are on pypi: https://testpypi.python.org/pypi/salt-eventsd
+#### Pypi
+As of Jan 22nd, we are on pypi: https://pypi.python.org/pypi/salt-eventsd/
 
 
 ### What it does
