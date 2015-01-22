@@ -21,7 +21,6 @@ setup(
     author='Volker Schwicking',
     author_email='vs@hosteurope.de',
     url='https://github.com/felskrone/salt-eventsd',
-    download_url='ihttps://github.com/felskrone/salt-eventsd/tarball/0.9.1',
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
