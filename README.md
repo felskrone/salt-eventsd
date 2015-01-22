@@ -1,21 +1,39 @@
 # salt-eventsd
 (a project based on but not related to saltstack)
 
+## The current stable release is tagged as: 0.9.1
+
 If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
 
-The current stable release is tagged version 0.9
+Due to public request, i pushed the develop-branch to github for everyone to try out. From today
+on, the latest bleeding-edge salt-eventsd will always be in the develop branch with new release
+getting tagged.
 
-The current development release is tagged version 0.9.1. If you want to try this version,
-make sure you replace 'state_upd' setting with 'state_timer': <seconds>.
+Please note, that i reserve the right to brake develop. Even though i always test all changes
+locally before pushing them to github, it may happen.
+
+
+### Updating from 0.9 to 0.9.1
+
+See the changelog for improvements in 0.9.1. There is logging to console and a new Stat_worker
+to try out! The installation.txt has more details regarding that.
+
+IMPORTANT:
+If you're coming from 0.9 make sure, that you rename the setting 'stat_upd' to 'stat_timer'.
+
 
 ### Availability Notes
+Debian / Ubuntu:
 A debian-package can be built straight from the repo by running 'dpkg-buildpackage -b'. All dependencies
 have to be installed of course.
 
+Redhat / CentOS
 There are no packages for redhat yet. If you have the knowledge and the ressources to support that, feel
 free to submit the necessary changes.
 
-Its also not yet on pypi, but thats in the works.
+Pypi:
+As of Jan 22nd, we are on pypi.
+
 
 ### What it does
 
