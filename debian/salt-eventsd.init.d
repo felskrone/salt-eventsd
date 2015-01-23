@@ -106,6 +106,7 @@ case "$1" in
         do_stop
         case "$?" in
           0|1)
+              sleep 1
               do_start
               case "$?" in
                   0) log_end_msg 0 ;;
