@@ -371,9 +371,6 @@ class SaltEventsDaemon(Daemon):
                 log.info('Received CTRL+C, shutting down')
                 self.stop(signal.SIGTERM, None)
 
-            if ret is None:
-                continue
-
             # if we have not received enough events in to reach event_limit
             # and the timer has fired, dump the events collected so far
             # to the workers
@@ -388,6 +385,9 @@ class SaltEventsDaemon(Daemon):
 
                     # we reset the timer.ev_timer_ev  at the end of the loop
                     # so we can update the stats that are logged
+
+            if ret is None:
+                continue
 
             # filter only the events we're interested in. all events have a tag
             # we can filter them by. we match with a precompiled regex
