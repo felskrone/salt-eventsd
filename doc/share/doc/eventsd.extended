@@ -25,7 +25,7 @@ general:
     state_file: /var/run/salt-eventsd.status
     # how frequently (after how many collected events) to 
     # update the state_file
-    state_upd: 25
+    state_timer: 25
     # the loglevel to use for logging
     loglevel: debug
     # the logfile the daemon should log into
@@ -38,6 +38,8 @@ general:
     backends: [Minion_Return_Worker, Minion_Sub_Worker, New_Job_Worker]
     # where to find the active backends 
     backend_dir: /etc/salt/eventsd_workers
+    # disable the stat_worker by default
+    stat_worker: False
 
 
 ##### CREDENTIALS FOR THE WORKERS #############
