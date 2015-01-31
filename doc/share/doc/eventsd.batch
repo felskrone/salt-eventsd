@@ -1,0 +1,76 @@
+###### GENERAL CONFIGURATION SETTINGS #######
+#############################################
+# general configuration settings for the daemon. Do not
+# remove any unless you really know what you're doing!
+general: 
+    # where is the socket for the events located
+    # /var/run/salt/master for salt-master
+    # /var/run/salt/minion for the salt-minion
+    # when run on a minion, always set 'node' to 'minion' too
+    sock_dir: /var/run/salt/master
+    node: master
+    # the id the listener should use while listening for events
+    # can by anything, but 'master' is advised on salt-master
+    id: master
+    # how many concurrent workers to start at most
+    max_workers: 100
+    # how many events to collect before starting a worker 
+    # that dumps the collected events into the database
+    # i suggest starting with one and raising it once it works
+    event_limit: 20
+    # where the daemon should put its pidfile
+    pidfile: /var/run/salt-eventsd.pid
+    # where the daemon should put its state_file
+    # this is plain text, just cat it
+    state_file: /var/run/salt-eventsd.status
+    # how frequently (after how many collected events) to 
+    # update the state_file
+    state_timer: 25
+    # the loglevel to use for logging
+    loglevel: debug
+    # the logfile the daemon should log into
+    logfile: /var/log/salt/eventsd
+    # after how many seconds with no collected events should the daemon
+    # start a worker to put the already collected events into the database
+    dump_timer: 10
+    # the backends to load on daemon-start, see the documentation in 
+    # /usr/share/doc/salt-eventsd/backends.txt on how to write your own
+    backends: [Minion_Batch_Return_Worker]
+    # where to find the active backends 
+    backend_dir: /etc/salt/eventsd_workers
+
+
+##### CREDENTIALS FOR THE WORKERS #############
+###############################################
+# add each worker with its name and its credentials here.
+# if no worker is defined but an entry called 'all'
+# exists, all worker will use the settings from global
+worker_settings:
+    # this entry will be used by any worker that is not explicitly defined
+    all:
+        redis-host: localhost
+        redis-port: 6379
+
+###### EVENT CONFIGURATION SETTINGS #######
+#############################################
+# The events the daemon should collect from the events bus.
+#
+events: 
+    batch_return: 
+        # This event matches on ALL results returned from a minion 
+
+        # The tag is defined as regex. Any regex python supports is supported
+        # but has to be escaped (if necessary) and quoted to work.
+        tag:  salt/job/[0-9]*/ret/\w+
+        # the backend where to send events that match this tag
+        backend: Minion_Batch_Return_Worker
+        # the dictionary-name WITHIN the returned event-dictionary 
+        # that holds the data we're interested in.
+        dict_name: data
+        # the fields from the dict_name-dictionary we want in the query. always make sure, 
+        # that the order in the template above and the fields defined here match in count
+        fields: [jid, id, retcode, return, success]
+        # enable debugging for this event
+        debug: false
+        # Enable batch mode
+        batch_mode: true

@@ -72,8 +72,12 @@ class SaltEventsdWorker(threading.Thread):
         # look through all the events and pass them on to the corresponding
         # backend each available backend is started only, if an event requires
         # it.
+        batch_backend_map = {}
+
         for entry in self.events:
             for event in self.event_map.keys():
+                batch_mode = self.event_map[event].get("batch_mode", False)
+
                 event_sets = []
                 event_set = None
 
@@ -109,15 +113,26 @@ class SaltEventsdWorker(threading.Thread):
 
                         # if the backend for this type of event has not
                         # been initiated yet, take care of that
-                        for event_set in event_sets:
-                            if event_set['backend'] not in self.active_backends.keys():
-                                self._init_backend(event_set['backend'])
+                        # Only init if not running in batch mode
+                        if not batch_mode:
+                            for event_set in event_sets:
+                                if event_set['backend'] not in self.active_backends.keys():
+                                    self._init_backend(event_set['backend'])
 
                         # finally send that event to the backend including
                         # the config-set for this event
                         for event_set in event_sets:
-                            self.active_backends[event_set['backend']].send(entry, event_set)
+                            if not batch_mode:
+                                self.active_backends[event_set['backend']].send(entry, event_set)
+                            else:
+                                batch_backend_map.setdefault(event_set['backend'], []).append((entry, event_set))
                 event_sets = []
+
+        # Init all backends and send all events at once
+        for backend, backend_data in batch_backend_map.items():
+            if backend not in self.active_backends.keys():
+                self._init_backend(backend)
+            self.active_backends[backend].send_batch(backend_data)
 
         # have all backends clean up their cleanup
         self._cleanup()
