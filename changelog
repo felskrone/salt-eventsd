@@ -1,39 +1,55 @@
-### development version 0.9.1 Jan 19th 2015 ###
+### Placeholder for next release x.y.z ###
 
-* removed state_upd setting, it is replaced with a state_timer which fires every n seconds
+* Add support for batch mode by sending all events at once to a new `send_batch` method inside the worker. [Grokzen]
+
+* Add new example worker that uses the new batch mode (Grokzen)
+
+
+
+### stable version 0.9.1 Jan 19th 2015 ###
+
+* Removed state_upd setting, it is replaced with a state_timer which fires every n seconds
   to update the status file /var/run/salt-eventsd.status
 
-* added two new values to status-file:
+* Added two new values to status-file:
   - events_hdl_sec: the events the daemon has matched against its config per second
   - events_tot_sec: the total events received on the eventbus per second
 
-  the old values are still there:
+  The old values are still there:
   - events_hdl: the total count of events handled
   - events_rec: the total count of events received
   - threads_created: the total number of threads created
   - threads_joined: the total number of threads joined
 
-* added a Stat_Worker that pushes the values found in the status-file into a worker
+* Added a Stat_Worker that pushes the values found in the status-file into a worker
   to push them even further into a backend. this greatly simplifies monitoring
 
-* code improvements from grokez, mainly PEP8
-* code improvements from grokez, specify config file on the cli (-c)
-* setup.py improvements from grokez for pypi (in the works)
+* Code improvements mainly PEP8 (Grokzen)
+
+* Code improvements specify config file on the cli (-c) (Grokzen)
+
+* Improved setup.py for pypi release (Grokzen)
+
+* First release to be uploaded to pypi
 
 
 
 ### stable version 0.9, Oct 26th 2014 ###
 
-* handle CTRL+C properly when run in foreground
-* cosmetic changes to docstrings, comments and tracking of files in git
-* fix requirements.txt for pip-users
-* tag 0.9 ist current stable release
+* Handle CTRL+C properly when run in foreground
+
+* Cosmetic changes to docstrings, comments and tracking of files in git
+
+* Fix requirements.txt for pip-users
 
 
 
 ### stable version 0.8, Aug 31st 2014 ###
 
 * Prio 1 events added to push events immediately without queing them first
+
 * Improved daemon handling on the console by addind argparse options, partly fixes #5
+
 * Fixed issues #7 #8 #9
+
 * Added changelog to show more easily what has changed
