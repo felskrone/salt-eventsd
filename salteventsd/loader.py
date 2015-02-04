@@ -4,13 +4,18 @@ the given config with a default of '/etc/salt/eventsd'. It also takes care of
 initializing the logger from saltstack.
 '''
 
-import sys
+# python std lib
+import copy
 import logging
-import salt.log
 import os
+import sys
 import yaml
 
-logger = salt.log.setup.logging.getLogger(__name__)
+# salt imports
+from salt.log import setup_console_logger, setup_logfile_logger
+from salt.log.setup import logging as salt_logging
+
+logger = salt_logging.getLogger(__name__)
 log = logging.getLogger(__name__)
 
 
@@ -21,13 +26,15 @@ class SaltEventsdLoader(object):
     '''
     def __init__(self, config=None, log_level=None, log_file=None, daemonize=False):
         self.config_file = config if config else "/etc/salt/eventsd"
-        # retrieve current settings from the config file
-        self.opts = None
-        self._read_yaml(self.config_file)
 
-        # make sure we have a 'general' section
-        if 'general' in self.opts.keys():
-            self.gen_opts = self.opts['general']
+        # retrieve initial settings from the config file
+        self.opts = self._read_yaml(self.config_file)
+
+        # A 'general' section is required in the config
+        if 'general' in self.opts:
+            self.gen_opts = copy.deepcopy(self.opts['general'])
+        else:
+            raise Exception("No 'general' options found in config file: {0}".format(self.config_file))
 
         # Use log level if explicitly set from cli
         if log_level:
@@ -50,14 +57,14 @@ class SaltEventsdLoader(object):
         if ('logfile' in self.gen_opts) and \
            ('loglevel' in self.gen_opts):
 
-            salt.log.setup_logfile_logger(
+            setup_logfile_logger(
                 self.gen_opts['logfile'],
                 self.gen_opts['loglevel'],
             )
 
             # Only log to foreground if not running as a daemon
             if not self.gen_opts['daemonize']:
-                salt.log.setup_console_logger(
+                setup_console_logger(
                     log_level=self.gen_opts['loglevel'],
                 )
         else:
@@ -65,11 +72,11 @@ class SaltEventsdLoader(object):
 
             # Only log to foreground if not running as a daemon
             if not self.gen_opts['daemonize']:
-                salt.log.setup_console_logger(
+                setup_console_logger(
                     log_level="warn"
                 )
 
-            salt.log.setup_logfile_logger(
+            setup_logfile_logger(
                 '/var/log/salt/eventsd',
                 'warn',
             )
@@ -86,8 +93,8 @@ class SaltEventsdLoader(object):
         returns a python dictionary with the pared items in it.
         '''
         try:
-            yaml_handle = open(path)
-            self.opts = yaml.load(yaml_handle.read())
+            with open(path) as stream:
+                return yaml.load(stream)
         except yaml.parser.ParserError as yamlerr:
             print("Failed to parse configfile: {0}".format(path))
             print(yamlerr)

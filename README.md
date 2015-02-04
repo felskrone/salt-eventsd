@@ -1,5 +1,7 @@
 # salt-eventsd
-(a project based on but not related to saltstack)
+
+A project based on but not related to saltstack
+
 
 ## The current stable release is tagged as: 0.9.1
 
@@ -23,16 +25,21 @@ If you're coming from 0.9 make sure, that you rename the setting 'stat_upd' to '
 
 
 ### Availability Notes
+
+#### Pypi
+
+As of Jan 22nd, we are on pypi: https://pypi.python.org/pypi/salt-eventsd/
+
 #### Debian / Ubuntu
+
 A debian-package can be built straight from the repo by running 'dpkg-buildpackage -b'. All dependencies
 have to be installed of course.
 
+
 #### Redhat / CentOS
+
 There are no packages for redhat yet. If you have the knowledge and the ressources to support that, feel
 free to submit the necessary changes.
-
-#### Pypi
-As of Jan 22nd, we are on pypi: https://pypi.python.org/pypi/salt-eventsd/
 
 
 ### What it does
@@ -47,6 +54,7 @@ workers then extract the desired data-fields from the return and process them fu
 
 
 ### Usage Examples
+
 - collect all events with tag 'new_job' to have a job-history that lasts longer than saltstacks job-cache
 - collect all job returns by matching on job-return-tagged event returned from minions to have a database with all returns you can index, search, etc.
 - filter events into different backends like graphite, mongodb, mysql, postgres, whatever...
@@ -54,7 +62,9 @@ workers then extract the desired data-fields from the return and process them fu
 - create and collect your own custom backends that process you event-data
 - etc.
 
+
 ### Why this is useful / Who needs this?
+
 Currently saltstack does not have an external job-cache that works without a returner. Using returners and by that losing salt encryption
 is not always desirable or maybe not even be an option. With this daemon, you can collect all data right where its created and returned: on the salt-master.
 
@@ -70,7 +80,9 @@ In larger environments it is also a good idea, to seperate different services fr
 communication and salt-eventsd to collect the actual data. The benefit is, that the salt-master does not need to be restarted just because changes
 were done for example to a reactor or a runner.
 
+
 ### Features
+
 - collect events from the salt-event-bus into a different backends
 - collect a configurable amount of events before pushing them into different backends
 - define Prio1 events that are pushed immediately without queuing them first
@@ -81,3 +93,23 @@ were done for example to a reactor or a runner.
 - fully saltstack-job-cache independant database to hold all data you want in it
 - example workers are found in the doc-directory
 
+
+### Testing
+
+py.test is used to run all available tests.
+
+To install all test dependencies you must first install all test dependencies by running 
+
+```
+$ pip install -r dev-requirements.txt
+```
+
+It is reccomended to install all dependencies inside a virtualenv for easy isolation.
+
+To run all tests simply the following in the root folder
+
+```
+py.test
+```
+
+Good options to use is `-x` for pdb debugging and `-s` for showing prints and log output.
