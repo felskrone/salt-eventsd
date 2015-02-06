@@ -1,6 +1,6 @@
-### Placeholder for next release x.y.z ###
+### stable version 0.9.2 ###
 
-* Add support for batch mode by sending all events at once to a new `send_batch` method inside the worker. [Grokzen]
+* Add support for batch mode by sending all events at once to a new `send_batch` method inside the worker. (Grokzen)
 
 * Add new example worker that uses the new batch mode (Grokzen)
 

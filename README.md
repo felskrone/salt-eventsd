@@ -3,7 +3,7 @@
 A project based on but not related to saltstack
 
 
-## The current stable release is tagged as: 0.9.1
+## The current stable release is tagged as: 0.9.2
 
 If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
 
@@ -15,13 +15,15 @@ Please note, that i reserve the right to brake develop. Even though i always tes
 locally before pushing them to github, it may happen.
 
 
-### Updating from 0.9 to 0.9.1
+### Updating from 0.9 to 0.9.2
 
-See the changelog for improvements in 0.9.1. There is logging to console and a new Stat_worker
-to try out! The installation.txt has more details regarding that.
+See the changelog for improvements in 0.9.2. For more info see installation.txt.
 
 IMPORTANT:
-If you're coming from 0.9 make sure, that you rename the setting 'stat_upd' to 'stat_timer'.
+If you're coming from 0.9 make sure, that you make the following changes to your config:
+
+Rename: 'stat_upd' to 'stat_timer'
+Add: 'stat_worker: False' (see installation.txt for details on it)
 
 
 ### Availability Notes
@@ -98,7 +100,7 @@ were done for example to a reactor or a runner.
 
 py.test is used to run all available tests.
 
-To install all test dependencies you must first install all test dependencies by running 
+To install all test dependencies you must first install all test dependencies by running
 
 ```
 $ pip install -r dev-requirements.txt
