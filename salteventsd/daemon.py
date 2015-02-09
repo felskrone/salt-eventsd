@@ -15,10 +15,14 @@ for events, collects events and starts all the workers to dump data.
 import logging
 import os
 import signal
-import simplejson
 import sys
 import time
 from re import compile
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 # salt-eventsd imports
 from salteventsd.backends import BackendMngr
@@ -515,7 +519,7 @@ class SaltEventsDaemon(Daemon):
             # write the info to the specified log
             statf = open(self.state_file, 'w')
             statf.writelines(
-                simplejson.dumps({
+                json.dumps({
                     'events_rec': self.events_rec,
                     'events_hdl': self.events_han,
                     'events_hdl_sec': round(ev_hdl_per_s, 2),
