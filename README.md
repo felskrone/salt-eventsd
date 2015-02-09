@@ -115,3 +115,19 @@ py.test
 ```
 
 Good options to use is `-x` for pdb debugging and `-s` for showing prints and log output.
+
+
+
+### Benchmark
+
+There is a simple benchmark script that can be used to test the performance of the code manually.
+
+The script setups almost all required mocking and config inside the script.
+
+Dependencies that is required is:
+
+ - mock (pip install mock)
+
+Copy the worker file `doc/share/doc/eventsd_workers/Bench_Worker.py` to `/etc/salt/eventsd_workers/Bench_Worker.py`
+
+Run the script with `python benchmark.py`
