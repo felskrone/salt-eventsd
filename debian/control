@@ -18,7 +18,6 @@ Depends: ${python:Depends},
          python,
          salt-master,
          python-mysqldb,
-         python-simplejson,
          python-zmq,
          python-yaml
 Description: A configurable daemon that listens on salts event-bus. It can react 
