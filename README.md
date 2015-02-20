@@ -55,6 +55,20 @@ certain events can be collected by their tag and/or function-name and handed dow
 workers then extract the desired data-fields from the return and process them further in a user-definable way.
 
 
+### Dependencies
+
+Required python runtime dependencies:
+
+ - salt >= 0.16.2
+ - mysql-python
+ - argparse
+ - pyzmq
+
+Optional/usefull dependencies
+
+ - simplejson (Install with: pip install simplejson)
+
+
 ### Usage Examples
 
 - collect all events with tag 'new_job' to have a job-history that lasts longer than saltstacks job-cache

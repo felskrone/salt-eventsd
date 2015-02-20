@@ -11,7 +11,11 @@ import logging
 log = logging.getLogger(__name__)
 
 try:
-    import simplejson
+    import simplejson as json
+except ImportError:
+    import json
+
+try:
     from base64 import b64encode
     import MySQLdb
 except ImportError as mis_lib:
@@ -134,7 +138,7 @@ class Minion_Return_Worker(object):
                 if fld == 'return':
                     tgt_data.append(
                         b64encode(
-                            simplejson.dumps(
+                            json.dumps(
                                 src_data[fld]
                             )
                         )
