@@ -68,6 +68,15 @@ Daemonize when run on the command line.
 .TP
 .BR -v
 Print current version and exit.
+.UNINDENT
+
+.SH
+WHAT HAPPENS WHEN AND WHERE
+THe salt-eventsd listens on the event-bus of the salt-master. It receives every(!) event that is published. The daemon looks at each events 'tag' and depending on its config decides, if it has to act or not. The matching is done using precompiled regular expressions, so its also valid to have regex-expressions in the 'tag'-fields of an event. This is for example done for the job-returns where the event is matched on the tag 'salt/job/[0-9]*/ret/\w+'. Not matching events are simply ignored. 
+
+Whenever a event matches, it is saved into a event-queue (python list). This happens transparently, the events are not "consumed" and still get to the master like all other vents. When the event-queue reaches its maximum amount of events (event_limit), a worker thread is started that takes care of pushing all the events into their respective backends.
+
+For environments where not so many events occur, the event_timer might be the useful. The timer starts with the configured interval when the daemon starts. It fires an event every 'event_timer' seconds if and only if, the event_limit has not been reached during the last 'event_timer' seconds. Whenever the timer-event occurs, the currently queued events in the event-queue manually pushed into the repspective backends. This is to prevent events from sitting too long in the event-queue without handled somehow.
 
 .SH SEE ALSO
 .sp
