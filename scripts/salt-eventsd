@@ -45,6 +45,7 @@ class ArgParser(object):
         )
 
         self.main_parser.add_argument(
+            '-L',
             '--logfile',
             type=str,
             default=None,
