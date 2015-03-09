@@ -18,6 +18,15 @@ all the settings required to run the salt-eventsd. DO NOT remove any in mysql or
 .BR GENERAL
 .br 
 Contains the general settings.
+
+.TP
+.BR backend 
+What backends to enable (in python list-format [worker1, worker2, worker4]
+
+.TP
+.BR backend_dir 
+Where the daemon can find the backend files <Name>_Worker.py
+
 .TP
 .BR sock_dir
 the path where the salt-masters events socket is located (default: /var/run/salt/master)
@@ -47,8 +56,8 @@ where the daemon should write its pidfie
 the salt-eventsd keep counters of collected events, threads created, threads joined, etc. This data is written into a file on a regular bases. See state_upd below.
 
 .TP
-.BR state_upd
-how many events to collect before updating the state_file. Dont set this too low, there can be quite a lot of events on the master depending on your minion swarm.
+.BR state_timer
+How often to write the current status of the daemon to the state_file.
 
 .TP
 .BR loglevel
@@ -62,27 +71,22 @@ where to write the logfile. Currently defaults to '/var/log/salt/eventsd.log' an
 .BR dump_timer
 If there are only a few events on the master to collect, it might take quite a while before the already collected events are written to the database. To keep this time short, there is a timer that triggers this every 'dump_timer' seconds. Whenever the events are written to the database due to the event_limit being reached, the timer is reset.
 
+.TP
+.BR stat_worker
+Wether or not to enable the Stat_worker to run when the state_timer fires.
+
 .SS
-.BR MYSQL
+.BR WORKER_CREDENTIALS
 .br 
-Contains the mysql settings.
-.TP
-.BR username
-the username for the mysql-server to use
+Contains the (optional) credentials for the workers if they require any. They can also be configured in the workers temselves. They can be in any format as long as they are alid yaml. The workers receives the whole datastructure and has to extract the valid fields.
 
 .TP
-.BR password
-the password for the user
+.BR all
+The credentials to pass on to all workers.
 
 .TP
-.BR db
-the database to select on the mysql-server
-
-.TP
-.BR host
-the host on which the database is located (have not tried remote hosts yet)
-
-
+.BR <NAME>_Worker:
+The credentials to pass on to the worker named 'NAME'. Each worker can have its very own credentials.
 
 .SS
 .BR EVENTS
@@ -97,7 +101,7 @@ Assign a name to the event. This is not used anywhere afterwards, just in the co
 - the tag of the events
 
 .B \ mysql_tab
-- the table in the database this event should be written into
+- the table in the database this event should be written into. If set to 'worker', some logic in the worker has to figure out the correct table.
 
 .B \ template
 - a sql_query template to run with the collected events da
@@ -111,12 +115,11 @@ Assign a name to the event. This is not used anywhere afterwards, just in the co
 .B \ debug
 - debug can be enabled for each event (this is not implemented yet!)
 
+.B \ prio
+- A prioritiy for the event. This type of events dont ever get queued.
+
+.B \ batch_mode
+- Standard workers receive one event at the time. Batch workers receive all events at once. This can for example be useful for large insert into mysql
+
 .UNINDENT
 
-.SS
-WHAT HAPPENS WHEN AND WHERE
-THe salt-eventsd listens on the event but of the salt-master. It receives every(!) event that is published. The daemon looks at each events 'tag' and depending on its config decides, if it has to act or not. The matching is done using precompiled regular expressions, so its also valid to have regex-expressions in the 'tag'-fields of an event. This is for example done for the job-returns where the event it matched on a 20-digit tag with '\\d{20}'.  Not matching events are simply ignored. 
-
-Whenever a event matches, it is saved into a event-queue (python list). This happends transparently, the events are not "consumed". When the event-queue reaches its maximum amount of events (event_limit), a thread is started to write this data into the database. Each thread creates its own mysql-connection. For one because the mysql-module does not support threaded connections and secondly because i want the workers to be independent. 
-
-For environments where not so many events occur, the event_timer might be the useful. The timer starts with the configured interval when the daemon starts. It fires an event every 'event_timer' seconds if and only if, the event_limit has not been reached during the last 'event_timer' seconds. Whenever the timer-event occurs, the currently queued events in the event-queue are written to the database. This is to prevent events from sitting too long in the event-queue without being written to the database. If normal database-write occur, the time is reset to zero so to keep it form interfering with the usual database-write-operations form the workers.
