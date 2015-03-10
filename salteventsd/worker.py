@@ -96,10 +96,29 @@ class SaltEventsdWorker(threading.Thread):
                             # the event into the corresponding backend which
                             # we might have to create prior to adding an event
                             if 'fun' in self.event_map[event]['subs'][subevent]:
-                                if self.event_map[event]['subs'][subevent]['fun'].match(entry['data']['fun']):
-                                    event_sets.append(self.event_map[event]['subs'][subevent])
+                                #
+                                # There are two possible event-formats:
+                                #
+                                # event.fire_master has the 'fun' within a 'data' dict
+                                if 'data' in entry:
+                                    try:
+                                        if self.event_map[event]['subs'][subevent]['fun'].match(entry['data']['fun']):
+                                            event_sets.append(self.event_map[event]['subs'][subevent])
+                                    except KeyError:
+                                        # Due to https://github.com/saltstack/salt/issues/12935
+                                        # not being resolved yet, we have to workaround.
+                                        log.debug('Workaround for Issue 12935 applied!')
+                                        if self.event_map[event]['subs'][subevent]['fun'].match(entry['data']['data']['fun']):
+                                            event_sets.append(self.event_map[event]['subs'][subevent])
+
+                                # while 'salt minion module.func' and 'salt-call' have it directly in the event
+                                else:
+                                    if self.event_map[event]['subs'][subevent]['fun'].match(entry['fun']):
+                                        event_sets.append(self.event_map[event]['subs'][subevent])
+
+                            # the 'tag' field is always on the first level of the event.
                             elif 'tag' in self.event_map[event]['subs'][subevent]:
-                                if self.event_map[event]['subs'][subevent]['tag'].match(entry['data']['fun']):
+                                if self.event_map[event]['subs'][subevent]['tag'].match(entry['data']['tag']):
                                     event_sets.append(self.event_map[event]['subs'][subevent])
 
                     if len(event_sets) == 0:
