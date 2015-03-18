@@ -126,6 +126,7 @@ class Stat_Worker(object):
             # execute the sql_qry
             self.cursor.execute(qry)
             self.conn.comm()
+            self.conn.cls()
         except Exception as excerr:
             log.critical("{0}# dont know how to handle:'{1}'".format(self.thread_id,
                                                                      stats_data))
