@@ -3,3 +3,29 @@ sql-scheme into a database and setting the right credentials in the config, you 
 have command+return logging i no time.
 
 if you need more fine grained control, see the eventsd.extended config on how to use sub-events.
+
+To configure the Elasticsearch worker, define the elasticsearch_host and
+elasticsearch_port in worker_credentials. A new job worker can be configured
+like so:
+
+   es_new_job:
+        backend: Elasticsearch_Worker
+        # The Elasticsearch index to insert into
+        index: cmd_hist
+        # The Elasticsearch document type
+        type: job
+        tag:  salt/job/[0-9]*/new
+        # List of functions to ignore
+        ignore: [saltutil.find_job, foo, bar]
+
+And a returns worker can be configured like so:
+
+    es_return:
+        backend: Elasticsearch_Worker
+        # The Elasticsearch index to insert into
+        index: returns
+        # The Elasticsearch document type
+        type: job
+        tag:  salt/job/[0-9]*/ret/\w+
+        # List of functions to ignore
+        ignore: [saltutil.find_job]
