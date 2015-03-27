@@ -4,6 +4,8 @@ salt-eventsd (0.9.3) stable; urgency=low
   * added elastic search worker (PR #39, thx jasonhancock, fixed #32)
   * workaround for issue #41 which is actually a salt problem (thx Sypher)
   * Fix copy&paste error with subevents where tag-filtering tried to use 'fun' field
+  * Fix #40 where Stat_worker kept mysql-connection open
+  * added logrotate config to debian package
 
  -- Volker Schwicking <vs@hosteurope.de>  Mon, 09 Mar 2015 12:12:22 +0100
 
@@ -11,9 +13,9 @@ salt-eventsd (0.9.2) stable; urgency=low
 
   * New send_batch()-method for workers (PR #22, thx Grokzen)
   * Fix for issue #29
- 
+
  -- Volker Schwicking <volker.schwicking@heg.com>  Thu, 22 Jan 2015 07:29:57 +0200
- 
+
 salt-eventsd (0.9.1) stable; urgency=low
 
   * coding style improvements and cleanup of pep8 violations (PR #20, thx Grokzen)

@@ -1,3 +1,11 @@
+### stable version 0.9.3 ###
+
+* New elastic-search worker by Jason Hancock
+
+* added logrotate config to debian package
+
+* Minor fixes
+
 ### stable version 0.9.2 ###
 
 * Add support for batch mode by sending all events at once to a new `send_batch` method inside the worker. (Grokzen)

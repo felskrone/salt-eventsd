@@ -3,7 +3,7 @@
 A project based on but not related to saltstack
 
 
-## The current stable release is tagged as: 0.9.2
+## The current stable release is tagged as: 0.9.3
 
 If you are already using salt-eventsd, check the changelog for the latest changes and fixes.
 
@@ -15,9 +15,9 @@ Please note, that i reserve the right to brake develop. Even though i always tes
 locally before pushing them to github, it may happen.
 
 
-### Updating from 0.9 to 0.9.2
+### Updating from 0.9 to 0.9.3
 
-See the changelog for improvements in 0.9.2. For more info see installation.txt.
+See the changelog for improvements in 0.9.3. For more info see installation.txt.
 
 IMPORTANT:
 If you're coming from 0.9 make sure, that you make the following changes to your config:
