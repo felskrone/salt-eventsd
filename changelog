@@ -1,3 +1,10 @@
+### stable version 0.9.4 ###
+
+* the munin-plugin multips_memory requires the process name to be '/usr/bin/python....' instead of
+  'python...' to work properly
+
+
+
 ### stable version 0.9.3 ###
 
 * New elastic-search worker by Jason Hancock
