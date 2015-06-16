@@ -45,14 +45,17 @@ I  It will create two tables:
    - New_Job_Worker.py -> for writing new commands into mysql
    - Minion_Return_Worker.py -> for writing returns into mysql
 
-5. (Re)start the daemon with its init-skript and the data should start coming in
+5. Install the mysql dependency to enable the workers to connect to a mysql server.
+   Run 'pip install mysql-python' to install the package.
+
+6. (Re)start the daemon with its init-skript and the data should start coming in
    once you issue a few commands to your minions. issued commands can be found in the
    'cmd_hist'-table, the results in 'returns'. dont be confused if you see base64
    encoded data. salt-eventsd does this with various fields to ensure, that characters
    within the data to insert do not break the mysql-query (which can easily happen with
    python data-structures). all data base64 is also json-encoded for easy extraction.
 
-6. If you dont see any data coming in, see the debug section below and tail the logfile
+7. If you dont see any data coming in, see the debug section below and tail the logfile
    /var/log/salt/eventsd
 
 
