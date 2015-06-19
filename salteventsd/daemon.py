@@ -275,7 +275,7 @@ class SaltEventsDaemon(Daemon):
                         clean_workers.append(worker)
                     else:
                         worker.join()
-                        log.debug("Joined worker #{0}".format(worker.getName()))
+                        log.info("Joined worker #{0}".format(worker.getName()))
 
                 if len(clean_workers) > 0:
                     log.info("Waiting 5secs for remaining workers..")
@@ -445,7 +445,7 @@ class SaltEventsDaemon(Daemon):
                     clean_workers.append(worker)
                 else:
                     worker.join()
-                    log.debug("Joined worker #{0}".format(worker.getName()))
+                    log.info("Joined worker #{0}".format(worker.getName()))
                     self.threads_join += 1
 
             # get rid of the old reference  and set a new one
