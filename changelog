@@ -1,8 +1,13 @@
+### stable version 0.9.5 ###
+
+* Change loglevel for joining workers from debug to info. This is useful for
+  logfile-aggregators like graylog to be able to monitor threads
+
+
 ### stable version 0.9.4 ###
 
 * the munin-plugin multips_memory requires the process name to be '/usr/bin/python....' instead of
   'python...' to work properly
-
 
 
 ### stable version 0.9.3 ###
