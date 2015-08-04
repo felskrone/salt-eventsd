@@ -1,3 +1,10 @@
+salt-eventsd (0.9.5) stable; urgency=low
+
+  * change loglevel for joining threads from debug to info for graylog
+  * partial fix for joining/cleaning up threads, issue #46
+
+ -- Volker Schwicking <vs@hosteurope.de>  Tue, 04 Aug 2015 09:38:11 +0200
+
 salt-eventsd (0.9.4) stable; urgency=low
 
   * the process name in os should by /usr/bin/python to work with munin properly
