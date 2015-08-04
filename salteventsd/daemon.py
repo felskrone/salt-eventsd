@@ -275,7 +275,7 @@ class SaltEventsDaemon(Daemon):
                         clean_workers.append(worker)
                     else:
                         worker.join()
-                        log.info("Joined worker #{0}".format(worker.getName()))
+                        log.info("Joined worker (exiting) #{0}".format(worker.getName()))
 
                 if len(clean_workers) > 0:
                     log.info("Waiting 5secs for remaining workers..")
@@ -375,7 +375,7 @@ class SaltEventsDaemon(Daemon):
                 log.info('Received CTRL+C, shutting down')
                 self.stop(signal.SIGTERM, None)
 
-            # if we have not received enough events in to reach event_limit
+            # if we have not received enough events to reach the event_limit
             # and the timer has fired, dump the events collected so far
             # to the workers
             if(self.ev_timer_ev):
@@ -445,7 +445,7 @@ class SaltEventsDaemon(Daemon):
                     clean_workers.append(worker)
                 else:
                     worker.join()
-                    log.info("Joined worker #{0}".format(worker.getName()))
+                    log.info("Joined worker (loop) #{0}".format(worker.getName()))
                     self.threads_join += 1
 
             # get rid of the old reference  and set a new one
