@@ -452,8 +452,11 @@ class SaltEventsDaemon(Daemon):
             # FIXME: is this really neccessary?
             del self.running_workers
 
+            # only increase the counter if an event was received
+            if ret is not None:
+                self.events_rec += 1
+
             self.running_workers = clean_workers
-            self.events_rec += 1
 
             if(self.ev_timer_ev):
                 self.ev_timer_ev = False
