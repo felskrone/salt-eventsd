@@ -390,30 +390,30 @@ class SaltEventsDaemon(Daemon):
                     # we reset the timer.ev_timer_ev  at the end of the loop
                     # so we can update the stats that are logged
 
-            if ret is None:
-                continue
-
             # filter only the events we're interested in. all events have a tag
             # we can filter them by. we match with a precompiled regex
-            if 'tag' in ret:
-                # filter out events with an empty tag. those are special
-                if ret['tag'] != '':
-                    # run through our configured events and try to match the
-                    # current events tag against the ones we're interested in
-                    for key in self.event_map.keys():
-                        if self.event_map[key]['tag'].match(ret['tag']):
-                            log.debug("Matching on {0}:{1}".format(key, ret['tag']))
+            if ret is not None:
+                if 'tag' in ret:
+                    # filter out events with an empty tag. those are special
+                    if ret['tag'] != '':
+                        # run through our configured events and try to match the
+                        # current events tag against the ones we're interested in
+                        for key in self.event_map.keys():
+                            if self.event_map[key]['tag'].match(ret['tag']):
+                                log.debug("Matching on {0}:{1}".format(key, ret['tag']))
 
-                            prio = self.event_map[key].get('prio', 0)
+                                prio = self.event_map[key].get('prio', 0)
 
-                            # push prio1-events directly into a worker
-                            if prio > 0:
-                                log.debug('Prio1 event found, pushing immediately!')
-                                self.events_han += 1
-                                self._init_worker([ret])
-                            else:
-                                event_queue.append(ret)
-                                self.events_han += 1
+                                # push prio1-events directly into a worker
+                                if prio > 0:
+                                    log.debug('Prio1 event found, pushing immediately!')
+                                    self.events_han += 1
+                                    self._init_worker([ret])
+                                else:
+                                    event_queue.append(ret)
+                                    self.events_han += 1
+            else:
+                log.debug("No Event received, event-handling skipped...")
 
             # once we reach the event_limit, start a worker that
             # writes that data in to the database
