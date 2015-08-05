@@ -60,13 +60,15 @@ workers then extract the desired data-fields from the return and process them fu
 Required python runtime dependencies:
 
  - salt >= 0.16.2
- - mysql-python
  - argparse
  - pyzmq
 
 Optional/usefull dependencies
 
- - simplejson (Install with: pip install simplejson)
+ - simplejson (pip install simplejson)
+ - mysql (pip install mysql-python)
+ - redis (pip install redis)
+ - elasticsearch (pip install elasticsearch>=1.0.0,<2.0.0)
 
 
 ### Usage Examples
@@ -108,6 +110,28 @@ were done for example to a reactor or a runner.
 - create your own sql-query-templates for inserting data into the database
 - fully saltstack-job-cache independant database to hold all data you want in it
 - example workers are found in the doc-directory
+
+
+### Worker installation
+
+No workers is installed by default when installing eventsd. Some workers require additional python requirements to make them work and you have to install them yourself when you are installing the worker files.
+
+The available workers can be found in the [eventsd_workers](doc/share/doc/eventsd_workers) folder.
+
+The following workers require `mysql-python` python package to be installed
+
+ - [Minion_Return_Worker.py](doc/share/doc/eventsd_workers/Minion_Return_Worker.py)
+ - [Minion_Sub_Worker.py](doc/share/doc/eventsd_workers/Minion_Sub_Worker.py)
+ - [New_Job_Worker.py](doc/share/doc/eventsd_workers/New_Job_Worker.py)
+ - [Stat_Worker.py](doc/share/doc/eventsd_workers/Stat_Worker.py)
+
+The following workers require `redis` python package to be installed
+
+ - [Minion_Batch_Return_Worker.py](doc/share/doc/eventsd_workers/Minion_Batch_Return_Worker.py)
+
+The following workers require `elasticsearch>=1.0.0,<2.0.0` python package to be installed
+
+ - [Elasticsearch_Worker.py](doc/share/doc/eventsd_workers/Elasticsearch_Worker.py)
 
 
 ### Testing

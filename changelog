@@ -9,6 +9,9 @@
 * the munin-plugin multips_memory requires the process name to be '/usr/bin/python....' instead of
   'python...' to work properly
 
+* Remove mysql and elasticsearch as requirements for this package and document the need to install them manually
+  if the workers that require them is going to be used. (Grokzen)
+
 
 ### stable version 0.9.3 ###
 
