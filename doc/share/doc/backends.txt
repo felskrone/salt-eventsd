@@ -1,4 +1,4 @@
-checkout eventsd_workers/ for example on how two write workers. after importing the 
+checkout the workers directory in the python module for example on how two write workers. after importing the 
 sql-scheme into a database and setting the right credentials in the config, you should 
 have command+return logging i no time.
 

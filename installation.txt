@@ -40,7 +40,7 @@ I  It will create two tables:
 
     cCange whats necessary, at least the credentials for the workers!
 
-4. Have a look at the backends in /etc/salt/eventsd_workers/ and notice,
+4. Have a look at the backends in the python modules directory (workers dir) and notice,
    that there are two workers:
    - New_Job_Worker.py -> for writing new commands into mysql
    - Minion_Return_Worker.py -> for writing returns into mysql
@@ -123,9 +123,7 @@ stat_worker: true
 
 in the general section of the config. The daemon will then periodically (stat_timer)
 create a Stat_worker that receives the same data that is written to the status file
-described above. A sample stat-worker is located in the docs dir.
-
-/usr/share/doc/salt-eventsd/events_workers/Stat_Worker.py
+described above. 
 
 The Stat_worker does not require any configuration in the main config-file. If you want
 to use the supplied Stat_worker.py, the credentials for this worker (worker_credential

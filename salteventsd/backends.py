@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 class BackendMngr(object):
     '''
     Loads classes from python-files named "^[aA-zZ]+Worker.py$" from the
-    backends-directory (default: /etc/salt/eventsd_workers)
+    backend directories.
     '''
 
     def __init__(self, be_dirs):
@@ -54,7 +54,7 @@ class BackendMngr(object):
 
         # look in the current search path for the given module_name
         try:
-            (file_n, filename, data) = imp.find_module(name, [path])
+            (file_n, filename, data) = imp.find_module(name, self.be_dirs)
             # load the module from file
             loaded_mod = imp.load_module(name, file_n, filename, data)
             log.info("loaded_mod: " + str(loaded_mod))

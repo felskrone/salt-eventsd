@@ -556,11 +556,17 @@ class SaltEventsDaemon(Daemon):
 
     def _init_backends(self, backends):
         '''
-        Loads the backends defined in the config
+        Loads the backends from the workers dir defined in the config
+        and fails back to the codebase dir incase they're not found there.
         '''
-        backend_mngr = BackendMngr(
-            ['/usr/share/pyshared/salteventsd/', self.config['backend_dir']]
-        )
+
+        backend_dirs = [
+            os.path.dirname(os.path.realpath(__file__)) + '/workers/'
+        ]
+        if 'backend_dir' in self.config:
+            backend_dirs.insert(0, self.config['backend_dir'])
+
+        backend_mngr = BackendMngr(backend_dirs)
         return backend_mngr.load_plugins()
 
     def _init_events(self, events={}):
