@@ -2,25 +2,6 @@
 
 set -e
 
-case "$1" in
-    configure)
-	if ! [ -d /etc/salt/eventsd_workers ]
-	then
-	    mkdir /etc/salt/eventsd_workers
-	fi
-
-        if ! [ -f /etc/salt/eventsd_workers/Minion_Return_Worker.py ]
-	then
-           zcat /usr/share/doc/salt-eventsd/eventsd_workers/Minion_Return_Worker.py.gz > /etc/salt/eventsd_workers/Minion_Return_Worker.py
-	fi
-
-        if ! [ -f /etc/salt/eventsd_workers/New_Job_Worker.py ]
-	then
-           zcat /usr/share/doc/salt-eventsd/eventsd_workers/New_Job_Worker.py.gz  > /etc/salt/eventsd_workers/New_Job_Worker.py
-	fi
-    ;;
-esac
-
 if [ -f /usr/sbin/update-python-modules ]
 then 
     update-python-modules -a -f -v
