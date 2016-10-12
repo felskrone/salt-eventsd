@@ -374,6 +374,13 @@ class SaltEventsDaemon(Daemon):
             except KeyboardInterrupt:
                 log.info('Received CTRL+C, shutting down')
                 self.stop(signal.SIGTERM, None)
+            except AssertionError:
+                # Incase the master restarts a reconnect needs to happen.
+                event = salt.utils.event.SaltEvent(
+                    self.node,
+                    self.sock_dir,
+                )
+                ret = event.get_event(full=True)
 
             # if we have not received enough events in to reach event_limit
             # and the timer has fired, dump the events collected so far
