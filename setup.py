@@ -34,7 +34,7 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Topic :: System :: Distributed Computing'],
     install_requires=open('requirements.txt').readlines(),
-    packages=['salteventsd'],
+    packages=['salteventsd', 'salteventsd.workers'],
     keywords = ['saltstack', 'salt'],
     data_files=[
         ('share/man/man1', ['doc/man/salt-eventsd.1']),

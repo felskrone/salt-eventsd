@@ -36,8 +36,8 @@ general:
     # the backends to load on daemon-start, see the documentation in
     # /usr/share/doc/salt-eventsd/backends.txt on how to write your own
     backends: [Minion_Return_Worker, Minion_Sub_Worker, New_Job_Worker]
-    # where to find the active backends
-    backend_dir: /etc/salt/eventsd_workers
+    # where to find the external backends
+    # backend_dir: /etc/salt/eventsd_workers
     # disable the stat_worker by default
     stat_worker: False
 
