@@ -1,3 +1,8 @@
+# This project is not maintained anymore. Current salt-versions can do the same out of the box with engines.
+# This project is not maintained anymore. Current salt-versions can do the same out of the box with engines.
+# This project is not maintained anymore. Current salt-versions can do the same out of the box with engines.
+# This project is not maintained anymore. Current salt-versions can do the same out of the box with engines.
+
 # salt-eventsd
 
 A project based on but not related to saltstack
